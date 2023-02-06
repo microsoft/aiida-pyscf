@@ -1,0 +1,41 @@
+[build-system]
+requires = ['flit_core>=3.4,<4']
+build-backend = 'flit_core.buildapi'
+
+[project]
+name = 'aiida-pyscf'
+dynamic = ['description', 'version']
+authors = [
+    {name = 'Sebastiaan P. Huber', email = 'mail@sphuber.net'}
+]
+readme = 'README.md'
+license = {file = 'LICENSE.txt'}
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Framework :: AiiDA',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: MacOS :: MacOS X',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Topic :: Scientific/Engineering'
+]
+keywords = ['aiida', 'workflows', 'pyscf']
+requires-python = '>=3.8'
+dependencies = [
+    'aiida-core~=2.1',
+]
+
+[project.urls]
+Source = 'https://github.com/microsoft/aiida-pyscf'
+
+[tool.flit.module]
+name = 'aiida_pyscf'
+
+[tool.flit.sdist]
+exclude = [
+    '.gitignore',
+]
