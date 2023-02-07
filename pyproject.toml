@@ -26,11 +26,14 @@ classifiers = [
 keywords = ['aiida', 'workflows', 'pyscf']
 requires-python = '>=3.8'
 dependencies = [
-    'aiida-core~=2.1',
+    'aiida-core[atomic_tools]~=2.1',
 ]
 
 [project.urls]
 Source = 'https://github.com/microsoft/aiida-pyscf'
+
+[project.entry-points.'aiida.calculations']
+'pyscf.base' = 'aiida_pyscf.calculations.base:PyscfCalculation'
 
 [project.optional-dependencies]
 pre-commit = [
@@ -43,6 +46,7 @@ tests = [
     'packaging',
     'pgtest~=1.3,>=1.3.1',
     'pytest~=7.2',
+    'pytest-regressions',
 ]
 
 [tool.flit.module]
@@ -78,6 +82,13 @@ show_traceback = true
 module = 'aiida_pyscf.*'
 follow_imports = 'skip'
 check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    'ase.*',
+    'ruamel.*',
+]
+ignore_missing_imports = true
 
 [tool.pydocstyle]
 ignore = [

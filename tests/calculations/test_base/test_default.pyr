@@ -1,0 +1,31 @@
+
+results = {}
+
+from pyscf import gto
+structure = gto.Mole()
+structure.basis = 'def2-tzvp'
+structure.charge = 0
+structure.spin = 0
+structure.unit = 'Ang'
+structure.atom = """
+O       0.000000000000000      0.000000000000000      0.119262000000000
+H       0.000000000000000      0.763239000000000     -0.477047000000000
+H       0.000000000000000     -0.763239000000000     -0.477047000000000
+
+"""
+structure.build()
+from pyscf import dft
+
+mean_field = dft.UKS(structure)
+mean_field.xc = 'pbe'
+
+
+mean_field_run = mean_field.run()
+
+results['total_energy'] = mean_field_run.e_tot
+results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()
+
+import json
+
+with open('results.json', 'w') as handle:
+    json.dump(results, handle)

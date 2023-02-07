@@ -1,0 +1,10 @@
+from pyscf import gto
+structure = gto.Mole()
+structure.basis = '{{ basis_set | default('def2-tzvp') }}'
+structure.charge = {{ charge | default(0) }}
+structure.spin = {{ spin | default(0) }}
+structure.unit = 'Ang'
+structure.atom = """
+{{ xyz }}
+"""
+structure.build()

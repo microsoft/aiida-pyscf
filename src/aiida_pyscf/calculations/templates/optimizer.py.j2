@@ -1,0 +1,9 @@
+convergence_parameters = {}
+{% if convergence_parameters %}
+{% for key, value in convergence_parameters.items() %}
+convergence_parameters['{{ key }}'] = {{ value }}
+{% endfor %}
+{% endif %}
+optimizer = mean_field.Gradients().optimizer(solver='{{ solver }}')
+optimized = optimizer.kernel(convergence_parameters)
+results['optimized_coordinates'] = optimized.atom_coords().tolist()

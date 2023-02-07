@@ -1,0 +1,10 @@
+from pyscf import dft
+
+mean_field = dft.{{ method | default('UKS') }}(structure)
+mean_field.xc = '{{ xc | default('pbe') }}'
+{% if grids is defined %}mean_field.grids.level = {{ grids['level'] | default(3) }}{% endif %}
+
+mean_field_run = mean_field.run()
+
+results['total_energy'] = mean_field_run.e_tot
+results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()
