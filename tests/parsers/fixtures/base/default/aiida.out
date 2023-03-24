@@ -1,0 +1,13 @@
+converged SCF energy = -1.15188954097423
+Dipole moment(X, Y, Z, Debye):  0.00000,  0.00000,  0.00000
+ ** Mulliken pop  **
+pop of  0 H 1s        1.00000
+pop of  1 H 1s        1.00000
+ ** Mulliken atomic charges  **
+charge of  0H =     -0.00000
+charge of  1H =      0.00000
+--------------- RKS gradients ---------------
+         x                y                z
+0 H     0.0000000000    -0.0000000000    -0.0136448201
+1 H     0.0000000000    -0.0000000000     0.0136448201
+----------------------------------------------

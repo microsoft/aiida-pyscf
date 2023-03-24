@@ -27,6 +27,7 @@ keywords = ['aiida', 'workflows', 'pyscf']
 requires-python = '>=3.8'
 dependencies = [
     'aiida-core[atomic_tools]~=2.1',
+    'pint',
 ]
 
 [project.urls]
@@ -34,6 +35,9 @@ Source = 'https://github.com/microsoft/aiida-pyscf'
 
 [project.entry-points.'aiida.calculations']
 'pyscf.base' = 'aiida_pyscf.calculations.base:PyscfCalculation'
+
+[project.entry-points.'aiida.parsers']
+'pyscf.base' = 'aiida_pyscf.parsers.base:PyscfParser'
 
 [project.optional-dependencies]
 pre-commit = [
@@ -86,6 +90,7 @@ check_untyped_defs = true
 [[tool.mypy.overrides]]
 module = [
     'ase.*',
+    'pint.*',
     'ruamel.*',
 ]
 ignore_missing_imports = true

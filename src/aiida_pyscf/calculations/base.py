@@ -45,7 +45,25 @@ class PyscfCalculation(CalcJob):
         spec.inputs['code'].required = True
 
         options = spec.inputs['metadata']['options']  # type: ignore[index]
+        options['parser_name'].default = 'pyscf.base'  # type: ignore[index]
         options['resources'].default = {'num_machines': 1, 'tot_num_mpiprocs': 1}  # type: ignore[index]
+
+        spec.output(
+            'parameters',
+            valid_type=Dict,
+            required=False,
+            help='Various computed properties parsed from the `FILENAME_RESULTS` output file.'
+        )
+        spec.output(
+            'structure',
+            valid_type=StructureData,
+            required=False,
+            help='The optimized structure if the input parameters contained the `optimizer` key.',
+        )
+
+        spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
+        spec.exit_code(303, 'ERROR_OUTPUT_STDERR_MISSING', message='The stderr output file was not retrieved.')
+        spec.exit_code(304, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
 
     @classmethod
     def validate_parameters(cls, value: Dict | None, _) -> str | None:

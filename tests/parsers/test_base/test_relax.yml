@@ -1,0 +1,32 @@
+structure:
+  cell:
+  - - 0.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 0.0
+  kinds:
+  - mass: 1.008
+    name: H
+    symbols:
+    - H
+    weights:
+    - 1.0
+  pbc1: false
+  pbc2: false
+  pbc3: false
+  sites:
+  - kind_name: H
+    position:
+    - 5.385126195468157e-16
+    - 1.1867273705450172e-15
+    - -0.6939768717171151
+  - kind_name: H
+    position:
+    - -1.0821697758941843e-15
+    - -1.5567727867904911e-15
+    - 0.6939768717171285

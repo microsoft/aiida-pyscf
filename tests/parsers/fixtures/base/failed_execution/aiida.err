@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "script.py", line 40, in <module>
+    optimizer = mean_field.Gradients().optimizer(solver='geomeTRIC')
+  File "/home/sph/.virtualenvs/aiida_dev/lib/python3.8/site-packages/pyscf/grad/rhf.py", line 353, in optimizer
+    from pyscf.geomopt import geometric_solver
+  File "/home/sph/.virtualenvs/aiida_dev/lib/python3.8/site-packages/pyscf/geomopt/geometric_solver.py", line 23, in <module>
+    import geometric
+ModuleNotFoundError: No module named 'geometric'
