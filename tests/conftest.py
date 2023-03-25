@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=redefined-outer-name
 """Module with test fixtures."""
+from __future__ import annotations
+
 import collections
 import pathlib
 
@@ -8,9 +10,10 @@ from aiida.common.folders import Folder
 from aiida.common.links import LinkType
 from aiida.engine.utils import instantiate_process
 from aiida.manage.manager import get_manager
-from aiida.orm import CalcJobNode, FolderData, StructureData
-from aiida.plugins import ParserFactory
+from aiida.orm import CalcJobNode, Dict, FolderData, StructureData
+from aiida.plugins import ParserFactory, WorkflowFactory
 from ase.build import molecule
+from plumpy import ProcessState
 import pytest
 
 pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
@@ -20,6 +23,26 @@ pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=inval
 def filepath_tests() -> pathlib.Path:
     """Return the path to the tests folder."""
     return pathlib.Path(__file__).resolve().parent
+
+
+@pytest.fixture
+def generate_workchain():
+    """Return a factory to generate a :class:`aiida.engine.WorkChain` instance with the given inputs."""
+
+    def factory(entry_point, inputs):
+        """Generate a :class:`aiida.engine.WorkChain` instance with the given inputs.
+
+        :param entry_point: entry point name of the work chain subclass.
+        :param inputs: inputs to be passed to process construction.
+        :return: a ``WorkChain`` instance.
+        """
+        process_class = WorkflowFactory(entry_point)
+        runner = get_manager().get_runner()
+        process = instantiate_process(runner, process_class, **inputs)
+
+        return process
+
+    return factory
 
 
 @pytest.fixture
@@ -59,7 +82,7 @@ def generate_calc_job_node(filepath_tests, aiida_computer_local):
                 flat_inputs.append((prefix + key, value))
         return flat_inputs
 
-    def factory(entry_point: str, test_name: str, inputs: dict = None):
+    def factory(entry_point: str, test_name: str | None = None, inputs: dict = None):
         """Create and return a :class:`aiida.orm.CalcJobNode` instance."""
         node = CalcJobNode(computer=aiida_computer_local(), process_type=f'aiida.calculations:{entry_point}')
 
@@ -70,12 +93,13 @@ def generate_calc_job_node(filepath_tests, aiida_computer_local):
 
         node.store()
 
-        filepath_retrieved = filepath_tests / 'parsers' / 'fixtures' / entry_point.split('.')[-1] / test_name
+        if test_name:
+            filepath_retrieved = filepath_tests / 'parsers' / 'fixtures' / entry_point.split('.')[-1] / test_name
 
-        retrieved = FolderData()
-        retrieved.base.repository.put_object_from_tree(filepath_retrieved)
-        retrieved.base.links.add_incoming(node, link_type=LinkType.CREATE, link_label='retrieved')
-        retrieved.store()
+            retrieved = FolderData()
+            retrieved.base.repository.put_object_from_tree(filepath_retrieved)
+            retrieved.base.links.add_incoming(node, link_type=LinkType.CREATE, link_label='retrieved')
+            retrieved.store()
 
         return node
 
@@ -105,5 +129,48 @@ def generate_structure():
         """Generate a ``StructureData`` instance."""
         atoms = molecule(formula)
         return StructureData(ase=atoms)
+
+    return factory
+
+
+@pytest.fixture
+def generate_workchain_pyscf_base(generate_workchain, generate_inputs_pyscf, generate_calc_job_node):
+    """Return a factory to generate a :class:`aiida_pyscf.workflows.base.PyscfBaseWorkChain` instance."""
+
+    def factory(inputs=None, exit_code=None):
+        """Generate a :class:`aiida_pyscf.workflows.base.PyscfBaseWorkChain` instance.``.
+
+        :param inputs: inputs for the ``PyscfBaseWorkChain``.
+        :param exit_code: exit code for the ``PyscfCalculation``.
+        """
+        process = generate_workchain('pyscf.base', {'pyscf': inputs or generate_inputs_pyscf()})
+        node = generate_calc_job_node('pyscf.base', inputs={'parameters': Dict()})
+        process.ctx.iteration = 1
+        process.ctx.children = [node]
+
+        if exit_code is not None:
+            node.set_process_state(ProcessState.FINISHED)
+            node.set_exit_status(exit_code.status)
+
+        return process
+
+    return factory
+
+
+@pytest.fixture
+def generate_inputs_pyscf(aiida_local_code_factory, generate_structure):
+    """Return a factory to generate a :class:`aiida_pyscf.calculations.base.PyscfCalculation` instance."""
+
+    def factory(inputs=None):
+        """Generate a :class:`aiida_pyscf.calculations.base.PyscfCalculation` instance."""
+        base_inputs = {
+            'code': aiida_local_code_factory('pyscf.base', 'python'),
+            'structure': generate_structure(),
+        }
+
+        if inputs:
+            base_inputs.update(**inputs)
+
+        return base_inputs
 
     return factory

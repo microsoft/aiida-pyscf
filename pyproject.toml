@@ -39,6 +39,9 @@ Source = 'https://github.com/microsoft/aiida-pyscf'
 [project.entry-points.'aiida.parsers']
 'pyscf.base' = 'aiida_pyscf.parsers.base:PyscfParser'
 
+[project.entry-points.'aiida.workflows']
+'pyscf.base' = 'aiida_pyscf.workflows.base:PyscfBaseWorkChain'
+
 [project.optional-dependencies]
 pre-commit = [
     'mypy==0.981',
