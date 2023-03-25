@@ -4,7 +4,9 @@ mean_field = dft.{{ method | default('UKS') }}(structure)
 mean_field.xc = '{{ xc | default('pbe') }}'
 {% if grids is defined %}mean_field.grids.level = {{ grids['level'] | default(3) }}{% endif %}
 
+time_mean_field_start = time.perf_counter()
 mean_field_run = mean_field.run()
 
+results['timings']['mean_field'] = time.perf_counter() - time_mean_field_start
 results['total_energy'] = mean_field_run.e_tot
 results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()

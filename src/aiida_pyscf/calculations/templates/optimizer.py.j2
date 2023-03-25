@@ -4,6 +4,11 @@ convergence_parameters = {}
 convergence_parameters['{{ key }}'] = {{ value }}
 {% endfor %}
 {% endif %}
+
+time_optimizer_start = time.perf_counter()
+
 optimizer = mean_field.Gradients().optimizer(solver='{{ solver }}')
 optimized = optimizer.kernel(convergence_parameters)
+
+results['timings']['optimizer'] = time.perf_counter() - time_optimizer_start
 results['optimized_coordinates'] = optimized.atom_coords().tolist()
