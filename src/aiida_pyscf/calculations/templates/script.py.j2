@@ -1,5 +1,13 @@
+import json
+import time
+
 {% if preamble %}{{ preamble }}{% endif %}
-results = {}
+
+results = {
+    'timings': {}
+}
+
+time_start = time.perf_counter()
 
 {{ script_structure }}
 {{ script_mean_field }}
