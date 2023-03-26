@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import typing as t
 
 from aiida.common.datastructures import CalcInfo, CodeInfo
 from aiida.common.folders import Folder
@@ -80,6 +81,39 @@ class PyscfCalculation(CalcJob):
             options = ' '.join(valid_methods)
             return f'specified mean field method {mean_field_method} is not supported, choose from: {options}'
 
+    def get_parameters(self) -> dict[str, t.Any]:
+        """Return the parameters to use for renderning the input script.
+
+        The base dictionary is formed by the ``parameters`` input node, which is supplemented by default values and
+        values that are based off other inputs, such as the ``structure`` converted to XYZ format.
+
+        :returns: Complete dictionary of parameters to render the input script.
+        """
+        if 'parameters' in self.inputs:  # type: ignore[operator]
+            parameters = self.inputs.parameters.get_dict()  # type: ignore[union-attr]
+        else:
+            parameters = {}
+
+        parameters.setdefault('structure', {})['xyz'] = self.prepare_structure_xyz()
+        parameters.setdefault('results', {})['filename_output'] = self.FILENAME_RESULTS
+
+        return parameters
+
+    def render_script(self) -> str:
+        """Return the rendered input script.
+
+        :returns: The input script template rendered with the parameters provided by ``get_parameters``.
+        """
+        environment = Environment(loader=PackageLoader('aiida_pyscf.calculations.base'),)
+        parameters = self.get_parameters()
+
+        return environment.get_template('script.py.j2').render(
+            structure=parameters.get('structure', {}),
+            mean_field=parameters.get('mean_field', {}),
+            optimizer=parameters.get('optimizer', None),
+            results=parameters.get('results', {}),
+        )
+
     def prepare_structure_xyz(self) -> str:
         """Return the input structure in XYZ format without the two leading header lines."""
         stream = io.StringIO()
@@ -93,22 +127,7 @@ class PyscfCalculation(CalcJob):
         :param folder: A temporary folder on the local file system.
         :returns: A :class:`aiida.common.datastructures.CalcInfo` instance.
         """
-        env = Environment(loader=PackageLoader('aiida_pyscf.calculations.base'),)
-
-        if 'parameters' in self.inputs:  # type: ignore[operator]
-            parameters = self.inputs.parameters.get_dict()  # type: ignore[union-attr]
-        else:
-            parameters = {}
-
-        parameters.setdefault('structure', {})['xyz'] = self.prepare_structure_xyz()
-        parameters.setdefault('results', {})['filename_output'] = self.FILENAME_RESULTS
-
-        script = env.get_template('script.py.j2').render(
-            structure=parameters.get('structure', {}),
-            mean_field=parameters.get('mean_field', {}),
-            optimizer=parameters.get('optimizer', None),
-            results=parameters.get('results', {}),
-        )
+        script = self.render_script()
 
         with folder.open(self.FILENAME_SCRIPT, 'w') as handle:
             handle.write(script)
