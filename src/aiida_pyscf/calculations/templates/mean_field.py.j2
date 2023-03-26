@@ -1,7 +1,7 @@
-from pyscf import dft
+from pyscf import scf
 
-mean_field = dft.{{ method | default('UKS') }}(structure)
-mean_field.xc = '{{ xc | default('pbe') }}'
+mean_field = scf.{{ method | default('UKS') }}(structure)
+{% if xc is defined %}mean_field.xc = {{ xc }}{% endif %}
 {% if grids is defined %}mean_field.grids.level = {{ grids['level'] | default(3) }}{% endif %}
 
 time_mean_field_start = time.perf_counter()
