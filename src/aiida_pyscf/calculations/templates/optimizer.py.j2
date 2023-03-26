@@ -1,13 +1,13 @@
 convergence_parameters = {}
-{% if convergence_parameters %}
-{% for key, value in convergence_parameters.items() %}
+{% if optimizer.convergence_parameters %}
+{% for key, value in optimizer.convergence_parameters.items() %}
 convergence_parameters['{{ key }}'] = {{ value }}
 {% endfor %}
 {% endif %}
 
 time_optimizer_start = time.perf_counter()
 
-optimizer = mean_field.Gradients().optimizer(solver='{{ solver }}')
+optimizer = mean_field.Gradients().optimizer(solver='{{ optimizer.solver }}')
 optimized = optimizer.kernel(convergence_parameters)
 
 results['timings']['optimizer'] = time.perf_counter() - time_optimizer_start
