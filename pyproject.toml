@@ -27,7 +27,9 @@ keywords = ['aiida', 'workflows', 'pyscf']
 requires-python = '>=3.8'
 dependencies = [
     'aiida-core[atomic_tools]~=2.1',
+    'numpy',
     'pint',
+    'pyscf[geomopt]',
 ]
 
 [project.urls]
