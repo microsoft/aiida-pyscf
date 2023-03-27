@@ -11,19 +11,12 @@ jobs:
         steps:
         -   uses: actions/checkout@v2
 
-        -   name: Cache Python dependencies
-            id: cache-pip
-            uses: actions/cache@v1
-            with:
-                path: ~/.cache/pip
-                key: pip-pre-commit-${{ hashFiles('**/setup.json') }}
-                restore-keys:
-                    pip-pre-commit-
-
         -   name: Install Python
-            uses: actions/setup-python@v2
+            uses: actions/setup-python@v4
             with:
                 python-version: '3.10'
+                cache: 'pip'
+                cache-dependency-path: pyproject.toml
 
         -   name: Install Python package and dependencies
             run: pip install -e .[pre-commit,tests]
@@ -34,7 +27,7 @@ jobs:
     tests:
 
         runs-on: ubuntu-latest
-        timeout-minutes: 10
+        timeout-minutes: 60
 
         strategy:
             matrix:
@@ -49,19 +42,12 @@ jobs:
         steps:
         -   uses: actions/checkout@v2
 
-        -   name: Cache Python dependencies
-            id: cache-pip
-            uses: actions/cache@v1
-            with:
-                path: ~/.cache/pip
-                key: pip-${{ matrix.python-version }}-tests-${{ hashFiles('**/setup.json') }}
-                restore-keys:
-                    pip-${{ matrix.python-version }}-tests
-
         -   name: Install Python ${{ matrix.python-version }}
-            uses: actions/setup-python@v2
+            uses: actions/setup-python@v4
             with:
                 python-version: ${{ matrix.python-version }}
+                cache: 'pip'
+                cache-dependency-path: pyproject.toml
 
         -   name: Install system dependencies
             run: sudo apt update && sudo apt install postgresql
