@@ -15,6 +15,9 @@ def main():
 
     from pyscf import gto
     structure = gto.Mole()
+    structure.cart = True
+    structure.spin = 2
+    structure.charge = 1
 
     structure.unit = 'Ang'
     structure.atom = """
