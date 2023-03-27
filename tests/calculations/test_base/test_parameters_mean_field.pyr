@@ -15,9 +15,6 @@ def main():
 
     from pyscf import gto
     structure = gto.Mole()
-    structure.cart = True
-    structure.spin = 2
-    structure.charge = 1
 
     structure.unit = 'Ang'
     structure.atom = """
@@ -29,7 +26,11 @@ def main():
     structure.build()
     from pyscf import scf
 
-    mean_field = scf.UKS(structure)
+    mean_field = scf.RHF(structure)
+    mean_field.xc = "PBE"
+    mean_field.grids = {"level": 3}
+    mean_field.method = "RHF"
+    mean_field.diis_start_cycle = 2
 
 
     time_mean_field_start = time.perf_counter()

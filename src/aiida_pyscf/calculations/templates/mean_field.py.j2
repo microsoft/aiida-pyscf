@@ -1,8 +1,8 @@
 from pyscf import scf
 
 mean_field = scf.{{ mean_field.method | default('UKS') }}(structure)
-{% if mean_field.xc is defined %}mean_field.xc = {{ mean_field.xc }}{% endif %}
-{% if mean_field.grids is defined %}mean_field.grids.level = {{ mean_field.grids['level'] | default(3) }}{% endif %}
+{% if mean_field %}{% for key, value in mean_field.items() %}mean_field.{{ key }} = {{ value|tojson }}
+{% endfor %}{% endif %}
 
 time_mean_field_start = time.perf_counter()
 mean_field_run = mean_field.run()

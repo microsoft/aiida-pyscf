@@ -60,6 +60,25 @@ def test_parameters_structure(generate_calc_job, generate_inputs_pyscf, file_reg
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
 
 
+def test_parameters_mean_field(generate_calc_job, generate_inputs_pyscf, file_regression):
+    """Test the ``mean_field`` key of the ``parameters`` input."""
+    parameters = {
+        'mean_field': {
+            'diis_start_cycle': 2,
+            'method': 'RHF',
+            'grids': {
+                'level': 3
+            },
+            'xc': 'PBE',
+        },
+    }
+    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
+    file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
+
+
 def test_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, file_regression):
     """Test the ``optimizer`` key of the ``parameters`` input."""
     parameters = {
