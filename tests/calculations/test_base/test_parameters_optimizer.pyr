@@ -15,9 +15,7 @@ def main():
 
     from pyscf import gto
     structure = gto.Mole()
-    structure.basis = 'def2-tzvp'
-    structure.charge = 0
-    structure.spin = 0
+
     structure.unit = 'Ang'
     structure.atom = """
     O       0.000000000000000      0.000000000000000      0.119262000000000

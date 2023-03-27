@@ -1,8 +1,7 @@
 from pyscf import gto
 structure = gto.Mole()
-structure.basis = '{{ structure.basis_set | default('def2-tzvp') }}'
-structure.charge = {{ structure.charge | default(0) }}
-structure.spin = {{ structure.spin | default(0) }}
+{% if structure %}{% for key, value in structure.items() %}{% if key != 'xyz' %}structure.{{ key }} = {{ value }}
+{% endif %}{% endfor %}{% endif %}
 structure.unit = 'Ang'
 structure.atom = """
 {{ structure.xyz }}
