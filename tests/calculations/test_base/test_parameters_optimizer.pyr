@@ -22,10 +22,10 @@ H       0.000000000000000     -0.763239000000000     -0.477047000000000
 
 """
 structure.build()
-from pyscf import dft
+from pyscf import scf
 
-mean_field = dft.UKS(structure)
-mean_field.xc = 'pbe'
+mean_field = scf.UKS(structure)
+
 
 
 time_mean_field_start = time.perf_counter()
