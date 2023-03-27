@@ -29,7 +29,6 @@ def main():
     mean_field = scf.UKS(structure)
 
 
-
     time_mean_field_start = time.perf_counter()
     mean_field_run = mean_field.run()
 
