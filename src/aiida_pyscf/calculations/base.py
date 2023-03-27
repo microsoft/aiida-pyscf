@@ -101,21 +101,13 @@ class PyscfCalculation(CalcJob):
             parameters = {}
 
         parameters.setdefault('structure', {})['xyz'] = self.prepare_structure_xyz()
-
-        script_structure = env.get_template('structure.py.j2').render(**parameters.get('structure', {}))
-        script_mean_field = env.get_template('mean_field.py.j2').render(**parameters.get('mean_field', {}))
-        script_results = env.get_template('results.py.j2').render(results={'filename_output': self.FILENAME_RESULTS})
-
-        if 'optimizer' in parameters:
-            script_optimizer = env.get_template('optimizer.py.j2').render(**parameters['optimizer'])
-        else:
-            script_optimizer = ''
+        parameters.setdefault('results', {})['filename_output'] = self.FILENAME_RESULTS
 
         script = env.get_template('script.py.j2').render(
-            script_structure=script_structure,
-            script_mean_field=script_mean_field,
-            script_optimizer=script_optimizer,
-            script_results=script_results,
+            structure=parameters.get('structure', {}),
+            mean_field=parameters.get('mean_field', {}),
+            optimizer=parameters.get('optimizer', None),
+            results=parameters.get('results', {}),
         )
 
         with folder.open(self.FILENAME_SCRIPT, 'w') as handle:
