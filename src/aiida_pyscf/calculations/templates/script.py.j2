@@ -13,12 +13,12 @@ def main():
     time_start = time.perf_counter()
 
 {% filter indent(width=4) %}
-{% include 'structure.py.j2' %}
-{% include 'mean_field.py.j2' %}
+{% include 'pyscf/structure.py.j2' %}
+{% include 'pyscf/mean_field.py.j2' %}
 {% if optimizer %}
-{% include 'optimizer.py.j2' %}
+{% include 'pyscf/optimizer.py.j2' %}
 {% endif %}
-{% include 'results.py.j2' %}
+{% include 'pyscf/results.py.j2' %}
 {% endfilter %}
 
 

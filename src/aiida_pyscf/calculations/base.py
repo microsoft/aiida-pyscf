@@ -10,7 +10,7 @@ from aiida.common.folders import Folder
 from aiida.engine import CalcJob, CalcJobProcessSpec
 from aiida.orm import Dict, StructureData
 from ase.io.xyz import write_xyz
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment, PackageLoader, PrefixLoader
 
 __all__ = ('PyscfCalculation',)
 
@@ -104,10 +104,10 @@ class PyscfCalculation(CalcJob):
 
         :returns: The input script template rendered with the parameters provided by ``get_parameters``.
         """
-        environment = Environment(loader=PackageLoader('aiida_pyscf.calculations.base'),)
+        environment = Environment(loader=PrefixLoader({'pyscf': PackageLoader('aiida_pyscf.calculations.base')}))
         parameters = self.get_parameters()
 
-        return environment.get_template('script.py.j2').render(
+        return environment.get_template('pyscf/script.py.j2').render(
             structure=parameters.get('structure', {}),
             mean_field=parameters.get('mean_field', {}),
             optimizer=parameters.get('optimizer', None),
