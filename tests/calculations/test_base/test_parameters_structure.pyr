@@ -13,37 +13,36 @@ def main():
     time_start = time.perf_counter()
 
 
+    # Section: Structure definition
     from pyscf import gto
     structure = gto.Mole()
     structure.cart = True
     structure.spin = 2
     structure.charge = 1
-
     structure.unit = 'Ang'
     structure.atom = """
     O       0.000000000000000      0.000000000000000      0.119262000000000
     H       0.000000000000000      0.763239000000000     -0.477047000000000
     H       0.000000000000000     -0.763239000000000     -0.477047000000000
-
     """
     structure.build()
+
+    # Section: Mean field
     from pyscf import scf
-
     mean_field = scf.UKS(structure)
-
-
-    time_mean_field_start = time.perf_counter()
+    mean_field_start = time.perf_counter()
     mean_field_run = mean_field.run()
 
-    results['timings']['mean_field'] = time.perf_counter() - time_mean_field_start
+    results['timings']['mean_field'] = time.perf_counter() - mean_field_start
     results['total_energy'] = mean_field_run.e_tot
     results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()
 
+
+    # Section: Results
     results['timings']['total'] = time.perf_counter() - time_start
 
     with open('results.json', 'w') as handle:
         json.dump(results, handle)
-
 
 
 if __name__ == '__main__':

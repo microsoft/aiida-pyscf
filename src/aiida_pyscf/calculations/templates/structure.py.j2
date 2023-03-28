@@ -1,9 +1,15 @@
+# Section: Structure definition
 from pyscf import gto
 structure = gto.Mole()
-{% if structure %}{% for key, value in structure.items() %}{% if key != 'xyz' %}structure.{{ key }} = {{ value }}
-{% endif %}{% endfor %}{% endif %}
+{% if structure %}
+    {% for key, value in structure.items() %}
+        {% if key != 'xyz' %}
+structure.{{ key }} = {{ value }}
+        {% endif %}
+    {% endfor %}
+{% endif %}
 structure.unit = 'Ang'
 structure.atom = """
-{{ structure.xyz }}
+{{ structure.xyz|trim }}
 """
 structure.build()
