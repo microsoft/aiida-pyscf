@@ -105,6 +105,9 @@ class PyscfCalculation(CalcJob):
         :returns: The input script template rendered with the parameters provided by ``get_parameters``.
         """
         environment = Environment(loader=PrefixLoader({'pyscf': PackageLoader('aiida_pyscf.calculations.base')}))
+        environment.trim_blocks = True
+        environment.lstrip_blocks = True
+        environment.keep_trailing_newline = True
         parameters = self.get_parameters()
 
         return environment.get_template('pyscf/script.py.j2').render(

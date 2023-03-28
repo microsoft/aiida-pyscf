@@ -1,12 +1,14 @@
+# Section: Mean field
 from pyscf import scf
-
 mean_field = scf.{{ mean_field.method | default('UKS') }}(structure)
-{% if mean_field %}{% for key, value in mean_field.items() %}mean_field.{{ key }} = {{ value|tojson }}
-{% endfor %}{% endif %}
-
-time_mean_field_start = time.perf_counter()
+{% if mean_field %}
+    {% for key, value in mean_field.items() %}
+mean_field.{{ key }} = {{ value|tojson }}
+    {% endfor %}
+{% endif %}
+mean_field_start = time.perf_counter()
 mean_field_run = mean_field.run()
 
-results['timings']['mean_field'] = time.perf_counter() - time_mean_field_start
+results['timings']['mean_field'] = time.perf_counter() - mean_field_start
 results['total_energy'] = mean_field_run.e_tot
 results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()

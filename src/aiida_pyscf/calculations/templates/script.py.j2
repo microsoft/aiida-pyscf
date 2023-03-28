@@ -12,14 +12,17 @@ def main():
 
     time_start = time.perf_counter()
 
-{% filter indent(width=4) %}
-{% include 'pyscf/structure.py.j2' %}
-{% include 'pyscf/mean_field.py.j2' %}
-{% if optimizer %}
-{% include 'pyscf/optimizer.py.j2' %}
-{% endif %}
-{% include 'pyscf/results.py.j2' %}
-{% endfilter %}
+    {% filter indent(width=4) +%}
+    {% include 'pyscf/structure.py.j2' %}
+
+    {% include 'pyscf/mean_field.py.j2' %}
+
+    {% if optimizer %}
+    {% include 'pyscf/optimizer.py.j2' %}
+    {% endif %}
+
+    {% include 'pyscf/results.py.j2' %}
+    {% endfilter %}
 
 
 if __name__ == '__main__':
