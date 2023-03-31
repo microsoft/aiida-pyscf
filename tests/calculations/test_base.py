@@ -103,3 +103,16 @@ def test_invalid_parameters_mean_field_method(generate_calc_job, generate_inputs
 
     with pytest.raises(ValueError, match=r'specified mean field method invalid is not supported'):
         generate_calc_job(PyscfCalculation, inputs=inputs)
+
+
+def test_invalid_parameters_optimizer(generate_calc_job, generate_inputs_pyscf):
+    """Test validation of ``parameters.optimizer``."""
+    inputs = generate_inputs_pyscf(parameters=Dict({'optimizer': {}}))
+
+    with pytest.raises(ValueError, match=r'No solver specified in `optimizer` parameters'):
+        generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    inputs = generate_inputs_pyscf(parameters=Dict({'optimizer': {'solver': 'solve-this'}}))
+
+    with pytest.raises(ValueError, match=r'Invalid solver `solve-this` specified in `optimizer` parameters'):
+        generate_calc_job(PyscfCalculation, inputs=inputs)

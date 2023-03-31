@@ -81,6 +81,16 @@ class PyscfCalculation(CalcJob):
             options = ' '.join(valid_methods)
             return f'specified mean field method {mean_field_method} is not supported, choose from: {options}'
 
+        if 'optimizer' in parameters:
+            valid_solvers = ('geometric', 'berny')
+            solver = parameters['optimizer'].get('solver')
+
+            if solver is None:
+                return f'No solver specified in `optimizer` parameters. Choose from: {valid_solvers}'
+
+            if solver.lower() not in valid_solvers:
+                return f'Invalid solver `{solver}` specified in `optimizer` parameters. Choose from: {valid_solvers}'
+
     def get_parameters(self) -> dict[str, t.Any]:
         """Return the parameters to use for renderning the input script.
 
