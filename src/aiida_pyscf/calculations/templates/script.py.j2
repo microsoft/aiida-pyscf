@@ -21,6 +21,10 @@ def main():
     {% include 'pyscf/optimizer.py.j2' %}
     {% endif %}
 
+    {% if fcidump %}
+    {% include 'pyscf/fcidump.py.j2' %}
+    {% endif %}
+
     {% include 'pyscf/results.py.j2' %}
     {% endfilter %}
 

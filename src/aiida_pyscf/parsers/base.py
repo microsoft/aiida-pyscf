@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """Parser for a :class:`aiida_pyscf.calculations.base.PyscfCalculation` job."""
+from __future__ import annotations
+
 import json
+import pathlib
 
 from aiida.engine import ExitCode
-from aiida.orm import Dict
+from aiida.orm import Dict, SinglefileData
 from aiida.parsers.parser import Parser
 from pint import UnitRegistry
 
@@ -13,7 +16,7 @@ from aiida_pyscf.calculations.base import PyscfCalculation
 class PyscfParser(Parser):
     """Parser for a :class:`aiida_pyscf.calculations.base.PyscfCalculation` job."""
 
-    def parse(self, **kwargs):
+    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ
         """Parse the contents of the output files stored in the ``retrieved`` output node.
 
         :returns: An exit code if the job failed.
@@ -21,6 +24,7 @@ class PyscfParser(Parser):
         ureg = UnitRegistry()
 
         files_retrieved = self.retrieved.list_object_names()
+        dirpath_temporary = pathlib.Path(retrieved_temporary_folder) if retrieved_temporary_folder else None
 
         for filename, exit_code in (
             (PyscfCalculation.FILENAME_STDERR, PyscfCalculation.exit_codes.ERROR_OUTPUT_STDERR_MISSING),
@@ -49,6 +53,10 @@ class PyscfParser(Parser):
             forces = parsed_json['forces'] * ureg.hartree / ureg.bohr
             parsed_json['forces'] = forces.to(ureg.electron_volt / ureg.angstrom).magnitude.tolist()
             parsed_json['forces_units'] = 'eV/Å'
+
+        if dirpath_temporary:
+            for filepath_fcidump in dirpath_temporary.glob('*.fcidump'):
+                self.out(f'fcidump.{filepath_fcidump.stem}', SinglefileData(filepath_fcidump))
 
         self.out('parameters', Dict(parsed_json))
 
