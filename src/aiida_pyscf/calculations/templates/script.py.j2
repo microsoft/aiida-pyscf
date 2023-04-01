@@ -21,6 +21,10 @@ def main():
     {% include 'pyscf/optimizer.py.j2' %}
     {% endif %}
 
+    {% if cubegen %}
+    {% include 'pyscf/cubegen.py.j2' %}
+    {% endif %}
+
     {% if fcidump %}
     {% include 'pyscf/fcidump.py.j2' %}
     {% endif %}

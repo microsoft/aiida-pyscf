@@ -70,6 +70,26 @@ def test_pyscf_base_geometry_optimization(
     data_regression.check(parameters)
 
 
+def test_pyscf_base_cubegen(aiida_local_code_factory, generate_structure):
+    """Test a ``PyscfCalculation`` job with an ``cubegen`` calculation."""
+    code = aiida_local_code_factory('pyscf.base', 'python')
+    builder = code.get_builder()
+    builder.structure = generate_structure(formula='N2')
+    builder.parameters = orm.Dict({
+        'mean_field': {
+            'method': 'RHF'
+        },
+        'cubegen': {
+            'indices': [5, 6],
+        }
+    })
+
+    results, node = engine.run_get_node(builder)
+    assert node.is_finished_ok
+    assert 'cubegen' in results
+    assert all(isinstance(node, orm.SinglefileData) for node in results['cubegen'].values())
+
+
 def test_pyscf_base_fcidump(aiida_local_code_factory, generate_structure):
     """Test a ``PyscfCalculation`` job with an ``fcidump`` calculation."""
     code = aiida_local_code_factory('pyscf.base', 'python')
