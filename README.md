@@ -2,6 +2,142 @@
 
 An [AiiDA](https://www.aiida.net) plugin for the [Python-based Simulations of Chemistry Framework (PySCF)](https://pyscf.org/index.html).
 
+## Installation
+
+The recommended method of installation is through [`pip`](https://pip.pypa.io/en/stable/):
+
+    pip install aiida-pyscf
+
+## Requirements
+
+To use `aiida-pyscf` a configured AiiDA profile is required.
+Please refer to the [documentation of `aiida-core`](https://aiida.readthedocs.io/projects/aiida-core/en/latest/intro/get_started.html) for detailed instructions.
+
+## Setup
+
+To run a PySCF calculation through AiiDA using the `aiida-pyscf` plugin, the computer needs to be configured where PySCF should be run.
+Please refer to the [documentation of `aiida-core`](https://aiida.readthedocs.io/projects/aiida-core/en/latest/howto/run_codes.html#computer-setup) for detailed instructions.
+
+Then the PySCF code needs to be configured.
+The following YAML configuration file can be taken as a starting point:
+```yaml
+label: pyscf
+description: PySCF
+computer: localhost
+filepath_executable: python
+default_calc_job_plugin: pyscf.base
+use_double_quotes: false
+with_mpi: false
+prepend_text: ''
+append_text: ''
+
+```
+Write the contents to a file named `pyscf.yml`, making sure to update the value of `computer` to the label of the computer configured in the previous step.
+To configure the code, execute:
+```bash
+verdi code create core.code.installed --config pyscf.yml -n
+```
+This should now have created the code with the label `pyscf` that will be used in the following examples.
+
+## Examples
+
+### Mean-field calculation
+
+The default calculation is to perform a mean-field calculation.
+At a very minimum, the structure and the mean-field method should be defined:
+```python
+from ase.build import molecule
+from aiida.engine import run
+from aiida.orm import Dict, StructureData, load_code
+
+builder = load_code('pyscf').get_builder()
+builder.structure = StructureData(ase=molecule('H2O'))
+builder.parameters = Dict({'mean_field': {'method': 'RHF'}})
+results, node = run.get_node(builder)
+```
+This runs a Hartree-Fock calculation on the geometry of a water molecule.
+
+The main results are stored in the `parameters` output, which by default contain the computed `total_energy` and `forces`, as well as some timing information:
+```python
+print(results['parameters'].get_dict())
+{
+    'forces': [
+        [-6.4898366104394e-16, 3.0329042995656e-15, 2.2269765466236],
+        [1.122487932593e-14, 0.64803103141326, -1.1134882733107],
+        [-1.0575895664886e-14, -0.64803103141331, -1.1134882733108]
+    ],
+    'forces_units': 'eV/Å',
+    'total_energy': -2039.8853743664,
+    'total_energy_units': 'eV'
+    'timings': {
+        'total': 1.3238215579768, 'mean_field': 0.47364449803717
+    },
+}
+```
+
+### Customizing the structure
+
+The geometry of the structure is fully defined through the `structure` input, which is provided by a `StructureData` node.
+Any other properties, e.g., the charge and what basis set to use, can be specified through the `structure` dictionary in the `parameters` input:
+```python
+from ase.build import molecule
+from aiida.engine import run
+from aiida.orm import Dict, StructureData, load_code
+
+builder = load_code('pyscf').get_builder()
+builder.structure = StructureData(ase=molecule('H2O'))
+builder.parameters = Dict({
+    'mean_field': {'method': 'RHF'},
+    'structure': {
+        'basis ': 'sto-3g',
+        'charge': 0,
+    }
+})
+results, node = run.get_node(builder)
+```
+Any attribute of the [`pyscf.gto.Mole` class](https://pyscf.org/user/gto.html) which is used to define the structure can be set through the `structure` dictionary, with the exception of the `atom` and `unit` attributes, which are set automatically by the plugin based on the `StructureData` input.
+
+### Optimizing geometry
+
+The geometry can be optimized by specifying the `optimizer` dictionary in the input `parameters`.
+The `solver` has to be specified, and currently the solvers `geometric` and `berny` are supported.
+The `convergence_parameters` accepts the parameters for the selected solver (see [PySCF documentation](https://pyscf.org/user/geomopt.html?highlight=geometry+optimization) for details):
+```python
+from ase.build import molecule
+from aiida.engine import run
+from aiida.orm import Dict, StructureData, load_code
+
+builder = load_code('pyscf').get_builder()
+builder.structure = StructureData(ase=molecule('H2O'))
+builder.parameters = Dict({
+    'mean_field': {'method': 'RHF'},
+    'optimizer': {
+        'solver': 'geometric',
+        'convergence_parameters': {
+            'convergence_energy': 1e-6,  # Eh
+            'convergence_grms': 3e-4,    # Eh/Bohr
+            'convergence_gmax': 4.5e-4,  # Eh/Bohr
+            'convergence_drms': 1.2e-3,  # Angstrom
+            'convergence_dmax': 1.8e-3,  # Angstrom
+        }
+    }
+})
+results, node = run.get_node(builder)
+```
+The `parameters` output will contain the optimized structure coordinates:
+```python
+print(results['parameters'].get_dict())
+{
+    ...
+    'optimized_coordinates': [
+        [3.6553814911922e-16, -4.4060505668964e-14, 0.2752230960058],
+        [8.5698519337032e-15, 1.4325248445029, -0.926413468005],
+        [-7.8373230766793e-15, -1.4325248445029, -0.92641346800501]
+    ]
+}
+```
+For convenience, the optimized structure is also returned in the form of a `StructureData` under the `structure` output label.
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
