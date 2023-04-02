@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import io
+import numbers
 import typing as t
 
 from aiida.common.datastructures import CalcInfo, CodeInfo
 from aiida.common.folders import Folder
 from aiida.engine import CalcJob, CalcJobProcessSpec
-from aiida.orm import Dict, StructureData
+from aiida.orm import Dict, SinglefileData, StructureData
 from ase.io.xyz import write_xyz
 from jinja2 import Environment, PackageLoader, PrefixLoader
+import numpy as np
 
 __all__ = ('PyscfCalculation',)
 
@@ -61,13 +63,14 @@ class PyscfCalculation(CalcJob):
             required=False,
             help='The optimized structure if the input parameters contained the `optimizer` key.',
         )
+        spec.output_namespace('fcidump', valid_type=SinglefileData, required=False, help='Computed fcidump files.')
 
         spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
         spec.exit_code(303, 'ERROR_OUTPUT_STDERR_MISSING', message='The stderr output file was not retrieved.')
         spec.exit_code(304, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
 
     @classmethod
-    def validate_parameters(cls, value: Dict | None, _) -> str | None:
+    def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements
         """Validate the parameters input."""
         if not value:
             return None
@@ -75,7 +78,7 @@ class PyscfCalculation(CalcJob):
         parameters = value.get_dict()
 
         mean_field_method = parameters.get('mean_field', {}).get('method', None)
-        valid_methods = ['RKS', 'RHF', 'DKS', 'DHF', 'GKS', 'GHF', 'HF', 'KS', 'ROHF', 'ROKS', 'UKS']
+        valid_methods = ['RKS', 'RHF', 'DKS', 'DHF', 'GKS', 'GHF', 'HF', 'KS', 'ROHF', 'ROKS', 'UKS', 'UHF']
 
         if mean_field_method and mean_field_method not in valid_methods:
             options = ' '.join(valid_methods)
@@ -90,6 +93,25 @@ class PyscfCalculation(CalcJob):
 
             if solver.lower() not in valid_solvers:
                 return f'Invalid solver `{solver}` specified in `optimizer` parameters. Choose from: {valid_solvers}'
+
+        if 'fcidump' in parameters:
+            active_spaces = parameters['fcidump'].get('active_spaces')
+            occupations = parameters['fcidump'].get('occupations')
+            arrays = []
+
+            for key, data in (('active_spaces', active_spaces), ('occupations', occupations)):
+                try:
+                    array = np.array(data)
+                except ValueError:
+                    return f'The `fcipdump.{key}` should be a nested list of integers, but got: {data}'
+
+                arrays.append(array)
+
+                if len(array.shape) != 2 or not issubclass(array.dtype.type, numbers.Integral):
+                    return f'The `fcipdump.{key}` should be a nested list of integers, but got: {data}'
+
+            if arrays[0].shape != arrays[1].shape:
+                return 'The `fcipdump.active_spaces` and `fcipdump.occupations` arrays have different shapes.'
 
     def get_parameters(self) -> dict[str, t.Any]:
         """Return the parameters to use for renderning the input script.
@@ -142,6 +164,7 @@ class PyscfCalculation(CalcJob):
             structure=parameters.get('structure', {}),
             mean_field=parameters.get('mean_field', {}),
             optimizer=parameters.get('optimizer', None),
+            fcidump=parameters.get('fcidump', None),
             results=parameters.get('results', {}),
         )
 
@@ -159,6 +182,7 @@ class PyscfCalculation(CalcJob):
         :returns: A :class:`aiida.common.datastructures.CalcInfo` instance.
         """
         script = self.render_script()
+        parameters = self.get_parameters()
 
         with folder.open(self.FILENAME_SCRIPT, 'w') as handle:
             handle.write(script)
@@ -171,10 +195,14 @@ class PyscfCalculation(CalcJob):
 
         calcinfo = CalcInfo()
         calcinfo.codes_info = [codeinfo]
+        calcinfo.retrieve_temporary_list = []
         calcinfo.retrieve_list = [
             self.FILENAME_RESULTS,
             self.FILENAME_STDERR,
             self.FILENAME_STDOUT,
         ]
+
+        if 'fcidump' in parameters:
+            calcinfo.retrieve_temporary_list.append('*.fcidump')
 
         return calcinfo

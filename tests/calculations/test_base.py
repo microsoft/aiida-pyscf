@@ -104,6 +104,21 @@ def test_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, file_reg
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
 
 
+def test_parameters_fcidump(generate_calc_job, generate_inputs_pyscf, file_regression):
+    """Test the ``fcidump`` key of the ``parameters`` input."""
+    parameters = {
+        'fcidump': {
+            'active_spaces': [[5, 6], [5, 7]],
+            'occupations': [[1, 1], [1, 1]],
+        },
+    }
+    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
+    file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
+
+
 def test_invalid_parameters_mean_field_method(generate_calc_job, generate_inputs_pyscf):
     """Test validation of ``parameters.mean_field.method``."""
     parameters = {'mean_field': {'method': 'invalid'}}
@@ -113,17 +128,42 @@ def test_invalid_parameters_mean_field_method(generate_calc_job, generate_inputs
         generate_calc_job(PyscfCalculation, inputs=inputs)
 
 
-def test_invalid_parameters_optimizer(generate_calc_job, generate_inputs_pyscf):
+@pytest.mark.parametrize(
+    'parameters, expected', (
+        ({}, r'No solver specified in `optimizer` parameters'),
+        ({
+            'solver': 'solve-this'
+        }, r'Invalid solver `solve-this` specified in `optimizer` parameters'),
+    )
+)
+def test_invalid_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, parameters, expected):
     """Test validation of ``parameters.optimizer``."""
-    inputs = generate_inputs_pyscf(parameters=Dict({'optimizer': {}}))
+    with pytest.raises(ValueError, match=expected):
+        generate_calc_job(PyscfCalculation, inputs=generate_inputs_pyscf(parameters=Dict({'optimizer': parameters})))
 
-    with pytest.raises(ValueError, match=r'No solver specified in `optimizer` parameters'):
-        generate_calc_job(PyscfCalculation, inputs=inputs)
 
-    inputs = generate_inputs_pyscf(parameters=Dict({'optimizer': {'solver': 'solve-this'}}))
-
-    with pytest.raises(ValueError, match=r'Invalid solver `solve-this` specified in `optimizer` parameters'):
-        generate_calc_job(PyscfCalculation, inputs=inputs)
+@pytest.mark.parametrize(
+    'parameters, expected', (
+        ({}, r'The `fcipdump.active_spaces` should be a nested list of integers.*'),
+        ({
+            'active_spaces': True
+        }, r'The `fcipdump.*` should be a nested list of integers.*'),
+        ({
+            'active_spaces': [True]
+        }, r'The `fcipdump.*` should be a nested list of integers.*'),
+        ({
+            'active_spaces': [[True]]
+        }, r'The `fcipdump.*` should be a nested list of integers.*'),
+        ({
+            'active_spaces': [[1]],
+            'occupations': [[1, 2]]
+        }, r'The `.*` and `.*` arrays have different shapes\.'),
+    )
+)
+def test_invalid_parameters_fcidump(generate_calc_job, generate_inputs_pyscf, parameters, expected):
+    """Test validation of ``parameters.fcidump``."""
+    with pytest.raises(ValueError, match=expected):
+        generate_calc_job(PyscfCalculation, inputs=generate_inputs_pyscf(parameters=Dict({'fcidump': parameters})))
 
 
 def test_filter_render_python(file_regression):

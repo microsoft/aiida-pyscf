@@ -39,6 +39,7 @@ def main():
     results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()
 
 
+
     # Section: Results
     results['timings']['total'] = time.perf_counter() - time_start
 

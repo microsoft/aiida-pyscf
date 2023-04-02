@@ -1,0 +1,17 @@
+# Section: fcidump
+from pyscf.mcscf.casci import CASCI
+from pyscf.tools import fcidump
+
+for active_spaces, occupations in zip({{ fcidump.active_spaces }}, {{ fcidump.occupations }}):
+    casci = CASCI(mean_field_run, len(active_spaces), sum(occupations))
+    new_mo = casci.sort_mo(active_spaces)
+    one_integral, shift = casci.h1e_for_cas(new_mo)
+    two_integral = casci.get_h2eff(new_mo)
+    fcidump.from_integrals(
+        f"active_space_{'_'.join([str(index) for index in active_spaces])}.fcidump",
+        one_integral,
+        two_integral,
+        casci.ncas,
+        casci.nelecas,
+        nuc=shift
+    )

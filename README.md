@@ -138,6 +138,45 @@ print(results['parameters'].get_dict())
 ```
 For convenience, the optimized structure is also returned in the form of a `StructureData` under the `structure` output label.
 
+### Writing Hamiltonian to FCIDUMP files
+
+To instruct the calculation to dump a representation of the Hamiltonian to FCIDUMP files, add the `fcidump` dictionary to the `parameters` input:
+```python
+from ase.build import molecule
+from aiida.engine import run
+from aiida.orm import Dict, StructureData, load_code
+
+builder = load_code('pyscf').get_builder()
+builder.structure = StructureData(ase=molecule('N2'))
+builder.parameters = Dict({
+    'mean_field': {'method': 'RHF'},
+    'fcidump': {
+        'active_spaces': [[5, 6, 8, 9]],
+        'occupations': [[1, 1, 1, 1]]
+    }
+})
+results, node = run.get_node(builder)
+```
+The `active_spaces` and `occupations` keys are requires and each take a list of list of integers.
+For each element in the list, a FCIDUMP file is generated for the corresponding active spaces and the occupations of the orbitals.
+The shape of the `active_spaces` and `occupations` array has to be identical.
+
+The generated FCIDUMP files are attached as `SinglefileData` output nodes in the `fcidump` namespace, where the label is determined by the corresponding active space:
+```python
+print(results['fcidump']['active_space_5_6_7_8'].get_content())
+ &FCI NORB=   4,NELEC= 4,MS2=0,
+  ORBSYM=1,1,1,1,
+  ISYM=1,
+ &END
+  0.5832127121682998       1    1    1    1
+  0.5359642500498074       1    1    2    2
+ -2.942091015256668e-15    1    1    3    2
+  0.5381290185905914       1    1    3    3
+ -3.782672959584676e-15    1    1    4    1
+  ...
+```
+
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
