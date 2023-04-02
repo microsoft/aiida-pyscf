@@ -1,0 +1,11 @@
+from pyscf.tools import cubegen
+
+{% if optimizer %}
+hf = optimizer_run
+{% else %}
+hf = mean_field_run
+{% endif %}
+
+for index in {{ cubegen.indices }}:
+    filename = f'mo_{index}.cube'
+    cubegen.orbital(hf.mol, filename, hf.mo_coeff[:,index], **{{ cubegen.parameters or {} }})

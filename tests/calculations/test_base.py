@@ -104,6 +104,26 @@ def test_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, file_reg
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
 
 
+def test_parameters_cubegen(generate_calc_job, generate_inputs_pyscf, file_regression):
+    """Test the ``cubegen`` key of the ``parameters`` input."""
+    parameters = {
+        'cubegen': {
+            'indices': [5, 6],
+            'parameters': {
+                'nx': 40,
+                'ny': 40,
+                'nz': 40,
+                'margin': 3.0,
+            }
+        },
+    }
+    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
+    file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
+
+
 def test_parameters_fcidump(generate_calc_job, generate_inputs_pyscf, file_regression):
     """Test the ``fcidump`` key of the ``parameters`` input."""
     parameters = {
@@ -140,6 +160,20 @@ def test_invalid_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, 
     """Test validation of ``parameters.optimizer``."""
     with pytest.raises(ValueError, match=expected):
         generate_calc_job(PyscfCalculation, inputs=generate_inputs_pyscf(parameters=Dict({'optimizer': parameters})))
+
+
+@pytest.mark.parametrize(
+    'parameters, expected', (
+        ({}, 'If the `cubegen` key is specified, the `indices` key has to be defined with a list of indices.'),
+        ({
+            'indices': 1
+        }, r'The `cubegen.indices` parameter should be a list of integers, but got:.*'),
+    )
+)
+def test_invalid_parameters_cubegen(generate_calc_job, generate_inputs_pyscf, parameters, expected):
+    """Test validation of ``parameters.cubegen``."""
+    with pytest.raises(ValueError, match=expected):
+        generate_calc_job(PyscfCalculation, inputs=generate_inputs_pyscf(parameters=Dict({'cubegen': parameters})))
 
 
 @pytest.mark.parametrize(

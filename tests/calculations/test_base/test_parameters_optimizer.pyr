@@ -47,6 +47,7 @@ def main():
     results['optimized_coordinates'] = optimizer_run.atom_coords().tolist()
 
 
+
     # Section: Results
     results['timings']['total'] = time.perf_counter() - time_start
 

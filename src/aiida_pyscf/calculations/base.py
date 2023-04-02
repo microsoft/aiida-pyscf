@@ -63,6 +63,7 @@ class PyscfCalculation(CalcJob):
             required=False,
             help='The optimized structure if the input parameters contained the `optimizer` key.',
         )
+        spec.output_namespace('cubegen', valid_type=SinglefileData, required=False, help='Computed cube files.')
         spec.output_namespace('fcidump', valid_type=SinglefileData, required=False, help='Computed fcidump files.')
 
         spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
@@ -70,7 +71,7 @@ class PyscfCalculation(CalcJob):
         spec.exit_code(304, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
 
     @classmethod
-    def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements
+    def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements,too-many-branches
         """Validate the parameters input."""
         if not value:
             return None
@@ -93,6 +94,15 @@ class PyscfCalculation(CalcJob):
 
             if solver.lower() not in valid_solvers:
                 return f'Invalid solver `{solver}` specified in `optimizer` parameters. Choose from: {valid_solvers}'
+
+        if 'cubegen' in parameters:
+            indices = parameters['cubegen'].get('indices')
+
+            if indices is None:
+                return 'If the `cubegen` key is specified, the `indices` key has to be defined with a list of indices.'
+
+            if not isinstance(indices, list) or any(not isinstance(e, int) for e in indices):
+                return f'The `cubegen.indices` parameter should be a list of integers, but got: {indices}'
 
         if 'fcidump' in parameters:
             active_spaces = parameters['fcidump'].get('active_spaces')
@@ -164,6 +174,7 @@ class PyscfCalculation(CalcJob):
             structure=parameters.get('structure', {}),
             mean_field=parameters.get('mean_field', {}),
             optimizer=parameters.get('optimizer', None),
+            cubegen=parameters.get('cubegen', None),
             fcidump=parameters.get('fcidump', None),
             results=parameters.get('results', {}),
         )
@@ -201,6 +212,9 @@ class PyscfCalculation(CalcJob):
             self.FILENAME_STDERR,
             self.FILENAME_STDOUT,
         ]
+
+        if 'cubegen' in parameters:
+            calcinfo.retrieve_temporary_list.append('*.cube')
 
         if 'fcidump' in parameters:
             calcinfo.retrieve_temporary_list.append('*.fcidump')

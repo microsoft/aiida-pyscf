@@ -176,6 +176,47 @@ print(results['fcidump']['active_space_5_6_7_8'].get_content())
   ...
 ```
 
+### Writing orbitals to CUBE files
+
+To instruct the calculation to dump a representation of molecular orbitals to CUBE files, add the `cubegen` dictionary to the `parameters` input:
+```python
+from ase.build import molecule
+from aiida.engine import run
+from aiida.orm import Dict, StructureData, load_code
+
+builder = load_code('pyscf').get_builder()
+builder.structure = StructureData(ase=molecule('N2'))
+builder.parameters = Dict({
+    'mean_field': {'method': 'RHF'},
+    'cubegen': {
+        'indices': [5, 6],
+        'parameters': {
+            'nx': 40,
+            'ny': 40,
+            'nz': 40,
+        }
+    }
+})
+results, node = run.get_node(builder)
+```
+The `indices` key has to be specified and takes a list of integers, indicating the indices of the molecular orbitals that should be written to file.
+Additional parameters can be provided in the `parameters` subdictionary (see the [PySCF documentation](https://pyscf.org/pyscf_api_docs/pyscf.tools.html?highlight=fcidump#module-pyscf.tools.cubegen) for details).
+
+The generated CUBE files are attached as `SinglefileData` output nodes in the `cubegen` namespace, where the label is determined by the corresponding molecular orbital index:
+```python
+print(results['cubegen']['mo_5'].get_content())
+Orbital value in real space (1/Bohr^3)
+PySCF Version: 2.1.1  Date: Sun Apr  2 15:59:19 2023
+    2   -3.000000   -3.000000   -4.067676
+   40    0.153846    0.000000    0.000000
+   40    0.000000    0.153846    0.000000
+   40    0.000000    0.000000    0.208599
+    7    0.000000    0.000000    0.000000    1.067676
+    7    0.000000    0.000000    0.000000   -1.067676
+ -1.10860E-04 -1.56874E-04 -2.16660E-04 -2.92099E-04 -3.84499E-04 -4.94299E-04
+ -6.20809E-04 -7.62048E-04 -9.14724E-04 -1.07439E-03 -1.23579E-03 -1.39331E-03
+  ...
+```
 
 ## Contributing
 
