@@ -2,7 +2,7 @@
 convergence_parameters = {}
 {% if optimizer.convergence_parameters %}
     {% for key, value in optimizer.convergence_parameters.items() %}
-convergence_parameters['{{ key }}'] = {{ value }}
+convergence_parameters['{{ key }}'] = {{ value|render_python }}
     {% endfor %}
 {% endif %}
 

@@ -18,6 +18,7 @@ def main():
     structure = gto.Mole()
     structure.cart = True
     structure.spin = 2
+    structure.basis = {'H': 'cc-pvdz', 'O': 'sto-3g'}
     structure.charge = 1
     structure.unit = 'Ang'
     structure.atom = """

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_pyscf.calculations.base` module."""
 # pylint: disable=redefined-outer-name
+import textwrap
+
 from aiida.orm import Dict
+from jinja2 import BaseLoader, Environment
 import pytest
 
 from aiida_pyscf.calculations.base import PyscfCalculation
@@ -48,6 +51,10 @@ def test_parameters_structure(generate_calc_job, generate_inputs_pyscf, file_reg
     """Test the ``structure`` key of the ``parameters`` input."""
     parameters = {
         'structure': {
+            'basis': {
+                'O': 'sto-3g',
+                'H': 'cc-pvdz'
+            },
             'cart': True,
             'charge': 1,
             'spin': 2,
@@ -85,7 +92,8 @@ def test_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, file_reg
         'optimizer': {
             'solver': 'geomeTRIC',
             'convergence_parameters': {
-                'convergence_energy': 2.0
+                'convergence_energy': 2.0,
+                'string': 'value',
             },
         },
     }
@@ -116,3 +124,30 @@ def test_invalid_parameters_optimizer(generate_calc_job, generate_inputs_pyscf):
 
     with pytest.raises(ValueError, match=r'Invalid solver `solve-this` specified in `optimizer` parameters'):
         generate_calc_job(PyscfCalculation, inputs=inputs)
+
+
+def test_filter_render_python(file_regression):
+    """Test the :meth:`aiida_pyscf.calculations.base.PyscfCalculation.filter_render_value` method."""
+    parameters = {
+        'bool': True,
+        'float': 1.0,
+        'integer': 1,
+        'string': 'string',
+        'dictionary': {
+            'a': 1,
+            'b': 1.0,
+            'c': 'str'
+        },
+    }
+
+    template = textwrap.dedent(
+        """
+        {% for key, value in parameters.items() -%}
+        obj.{{ key }} = {{ value|render_python }}
+        {% endfor -%}"""
+    )
+
+    environment = Environment(loader=BaseLoader)
+    environment.filters['render_python'] = PyscfCalculation.filter_render_python
+    rendered = environment.from_string(template).render(parameters=parameters)
+    file_regression.check(rendered, encoding='utf-8', extension='.pyr')
