@@ -109,6 +109,23 @@ class PyscfCalculation(CalcJob):
 
         return parameters
 
+    @classmethod
+    def filter_render_python(cls, value: t.Any) -> t.Any:
+        """Render the ``value`` in a template literally as it would be rendered in a Python script.
+
+        For now, it simply ensures that string variables are rendered with quotes as the default behavior of Jinja is to
+        strip these strings, since it is mostly intended to generate HTML markup and not Python code.
+        This filter can be registered in a template environment and then used as:
+
+            {{ variable|render_python }}
+
+        :param value: Any value that needs to be rendered literally.
+        :return: The rendered value
+        """
+        if isinstance(value, str):
+            return f"'{value}'"
+        return value
+
     def render_script(self) -> str:
         """Return the rendered input script.
 
@@ -118,6 +135,7 @@ class PyscfCalculation(CalcJob):
         environment.trim_blocks = True
         environment.lstrip_blocks = True
         environment.keep_trailing_newline = True
+        environment.filters['render_python'] = self.filter_render_python
         parameters = self.get_parameters()
 
         return environment.get_template('pyscf/script.py.j2').render(

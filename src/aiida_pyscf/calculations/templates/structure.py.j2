@@ -4,7 +4,7 @@ structure = gto.Mole()
 {% if structure %}
     {% for key, value in structure.items() %}
         {% if key != 'xyz' %}
-structure.{{ key }} = {{ value }}
+structure.{{ key }} = {{ value|render_python }}
         {% endif %}
     {% endfor %}
 {% endif %}

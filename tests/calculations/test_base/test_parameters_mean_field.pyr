@@ -27,9 +27,9 @@ def main():
     # Section: Mean field
     from pyscf import scf
     mean_field = scf.RHF(structure)
-    mean_field.xc = "PBE"
-    mean_field.grids = {"level": 3}
-    mean_field.method = "RHF"
+    mean_field.xc = 'PBE'
+    mean_field.grids = {'level': 3}
+    mean_field.method = 'RHF'
     mean_field.diis_start_cycle = 2
     mean_field_start = time.perf_counter()
     mean_field_run = mean_field.run()

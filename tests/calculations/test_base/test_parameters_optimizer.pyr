@@ -36,6 +36,7 @@ def main():
 
     # Section: Optimizer
     convergence_parameters = {}
+    convergence_parameters['string'] = 'value'
     convergence_parameters['convergence_energy'] = 2.0
 
     optimizer_start = time.perf_counter()

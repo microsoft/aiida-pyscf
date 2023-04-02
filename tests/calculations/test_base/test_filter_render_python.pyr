@@ -1,0 +1,6 @@
+
+obj.bool = True
+obj.float = 1.0
+obj.integer = 1
+obj.string = 'string'
+obj.dictionary = {'a': 1, 'b': 1.0, 'c': 'str'}
