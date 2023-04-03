@@ -24,6 +24,7 @@ class PyscfCalculation(CalcJob):
     FILENAME_STDERR: str = 'aiida.err'
     FILENAME_STDOUT: str = 'aiida.out'
     FILENAME_RESULTS: str = 'results.json'
+    MAIN_TEMPLATE: str = 'pyscf/script.py.j2'
 
     @classmethod
     def define(cls, spec: CalcJobProcessSpec):  # type: ignore[override]
@@ -123,6 +124,18 @@ class PyscfCalculation(CalcJob):
             if arrays[0].shape != arrays[1].shape:
                 return 'The `fcipdump.active_spaces` and `fcipdump.occupations` arrays have different shapes.'
 
+    def get_template_environment(self) -> Environment:
+        """Return the template environment that should be used for rendering.
+
+        :returns: The :class:`jinja2.Environment` to be used for rending the input script template.
+        """
+        environment = Environment(loader=PrefixLoader({'pyscf': PackageLoader('aiida_pyscf.calculations.base')}))
+        environment.trim_blocks = True
+        environment.lstrip_blocks = True
+        environment.keep_trailing_newline = True
+        environment.filters['render_python'] = self.filter_render_python
+        return environment
+
     def get_parameters(self) -> dict[str, t.Any]:
         """Return the parameters to use for renderning the input script.
 
@@ -137,6 +150,7 @@ class PyscfCalculation(CalcJob):
             parameters = {}
 
         parameters.setdefault('structure', {})['xyz'] = self.prepare_structure_xyz()
+        parameters.setdefault('mean_field', {})
         parameters.setdefault('results', {})['filename_output'] = self.FILENAME_RESULTS
 
         return parameters
@@ -163,21 +177,9 @@ class PyscfCalculation(CalcJob):
 
         :returns: The input script template rendered with the parameters provided by ``get_parameters``.
         """
-        environment = Environment(loader=PrefixLoader({'pyscf': PackageLoader('aiida_pyscf.calculations.base')}))
-        environment.trim_blocks = True
-        environment.lstrip_blocks = True
-        environment.keep_trailing_newline = True
-        environment.filters['render_python'] = self.filter_render_python
         parameters = self.get_parameters()
-
-        return environment.get_template('pyscf/script.py.j2').render(
-            structure=parameters.get('structure', {}),
-            mean_field=parameters.get('mean_field', {}),
-            optimizer=parameters.get('optimizer', None),
-            cubegen=parameters.get('cubegen', None),
-            fcidump=parameters.get('fcidump', None),
-            results=parameters.get('results', {}),
-        )
+        environment = self.get_template_environment()
+        return environment.get_template(self.MAIN_TEMPLATE).render(**parameters)
 
     def prepare_structure_xyz(self) -> str:
         """Return the input structure in XYZ format without the two leading header lines."""
