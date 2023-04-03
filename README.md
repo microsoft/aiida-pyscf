@@ -1,6 +1,19 @@
-# aiida-pyscf
+# `aiida-pyscf`
+[![PyPI version](https://badge.fury.io/py/aiida-pyscf.svg)](https://badge.fury.io/py/aiida-pyscf)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/aiida-pyscf.svg)](https://pypi.python.org/pypi/aiida-pyscf)
+[![CI](https://github.com/microsoft/aiida-pyscf/workflows/ci/badge.svg)](https://github.com/microsoft/aiida-pyscf/actions/workflows/ci.yml)
 
 An [AiiDA](https://www.aiida.net) plugin for the [Python-based Simulations of Chemistry Framework (PySCF)](https://pyscf.org/index.html).
+
+1. [Installation](#installation)
+2. [Requirements](#requirements)
+3. [Setup](#setup)
+4. [Examples](#examples)
+    * [Mean-field calculation](#mean-field-calculation)
+    * [Customizing the structure](#customizing-the-structure)
+    * [Optimizing geometry](#optimizing-geometry)
+    * [Writing Hamiltonian to FCIDUMP files](#writing-hamiltonian-to-fcidump-files)
+    * [Writing orbitals to CUBE files](#writing-orbitals-to-cube-files)
 
 ## Installation
 
