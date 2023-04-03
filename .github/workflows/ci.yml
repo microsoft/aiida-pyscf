@@ -18,6 +18,9 @@ jobs:
                 cache: 'pip'
                 cache-dependency-path: pyproject.toml
 
+        -   name: Update pip and install wheel
+            run: pip install -U pip wheel
+
         -   name: Install Python package and dependencies
             run: pip install -e .[pre-commit,tests]
 
@@ -51,6 +54,9 @@ jobs:
 
         -   name: Install system dependencies
             run: sudo apt update && sudo apt install postgresql
+
+        -   name: Update pip and install wheel
+            run: pip install -U pip wheel
 
         -   name: Install Python package and dependencies
             run: pip install -e .[tests]
