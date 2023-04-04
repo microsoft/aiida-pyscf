@@ -81,12 +81,15 @@ class PyscfCalculation(CalcJob):
 
         parameters = value.get_dict()
 
-        mean_field_method = parameters.get('mean_field', {}).get('method', None)
+        mean_field_method = parameters.get('mean_field', {}).get('method')
         valid_methods = ['RKS', 'RHF', 'DKS', 'DHF', 'GKS', 'GHF', 'HF', 'KS', 'ROHF', 'ROKS', 'UKS', 'UHF']
+        options = ' '.join(valid_methods)
 
-        if mean_field_method and mean_field_method not in valid_methods:
-            options = ' '.join(valid_methods)
-            return f'specified mean field method {mean_field_method} is not supported, choose from: {options}'
+        if mean_field_method is None:
+            return f'The `mean_field.method` has to be specified in the `parameters` input, choose from: {options}'
+
+        if mean_field_method not in valid_methods:
+            return f'Specified mean field method {mean_field_method} is not supported, choose from: {options}'
 
         if 'optimizer' in parameters:
             valid_solvers = ('geometric', 'berny')

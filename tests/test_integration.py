@@ -9,6 +9,7 @@ def test_pyscf_base_mean_field(aiida_local_code_factory, generate_structure, dat
     code = aiida_local_code_factory('pyscf.base', 'python')
     builder = code.get_builder()
     builder.structure = generate_structure()
+    builder.parameters = orm.Dict({'mean_field': {'method': 'RHF'}})
 
     results, node = engine.run_get_node(builder)
     assert node.is_finished_ok
@@ -37,6 +38,9 @@ def test_pyscf_base_geometry_optimization(
     builder = code.get_builder()
     builder.structure = generate_structure()
     builder.parameters = orm.Dict({
+        'mean_field': {
+            'method': 'RHF'
+        },
         'optimizer': {
             'solver': 'geomeTRIC',
         },

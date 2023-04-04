@@ -3,6 +3,7 @@
 # pylint: disable=redefined-outer-name
 import textwrap
 
+from aiida.manage.tests.pytest_fixtures import recursive_merge
 from aiida.orm import Dict
 from jinja2 import BaseLoader, Environment
 import pytest
@@ -15,9 +16,13 @@ def generate_inputs_pyscf(aiida_local_code_factory, generate_structure):
     """Return a dictionary of inputs for the ``PyscfCalculation`."""
 
     def factory(**kwargs):
+        parameters = {'mean_field': {'method': 'RHF'}}
+        recursive_merge(parameters, kwargs.pop('parameters', {}))
+
         inputs = {
             'code': aiida_local_code_factory('pyscf.base', 'python'),
             'structure': generate_structure(),
+            'parameters': Dict(parameters),
             'metadata': {
                 'options': {
                     'resources': {
@@ -60,7 +65,7 @@ def test_parameters_structure(generate_calc_job, generate_inputs_pyscf, file_reg
             'spin': 2,
         },
     }
-    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    inputs = generate_inputs_pyscf(parameters=parameters)
     tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
 
     content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
@@ -79,7 +84,7 @@ def test_parameters_mean_field(generate_calc_job, generate_inputs_pyscf, file_re
             'xc': 'PBE',
         },
     }
-    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    inputs = generate_inputs_pyscf(parameters=parameters)
     tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
 
     content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
@@ -97,7 +102,7 @@ def test_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, file_reg
             },
         },
     }
-    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    inputs = generate_inputs_pyscf(parameters=parameters)
     tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
 
     content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
@@ -117,7 +122,7 @@ def test_parameters_cubegen(generate_calc_job, generate_inputs_pyscf, file_regre
             }
         },
     }
-    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    inputs = generate_inputs_pyscf(parameters=parameters)
     tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
 
     content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
@@ -132,7 +137,7 @@ def test_parameters_fcidump(generate_calc_job, generate_inputs_pyscf, file_regre
             'occupations': [[1, 1], [1, 1]],
         },
     }
-    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    inputs = generate_inputs_pyscf(parameters=parameters)
     tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
 
     content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
@@ -142,9 +147,9 @@ def test_parameters_fcidump(generate_calc_job, generate_inputs_pyscf, file_regre
 def test_invalid_parameters_mean_field_method(generate_calc_job, generate_inputs_pyscf):
     """Test validation of ``parameters.mean_field.method``."""
     parameters = {'mean_field': {'method': 'invalid'}}
-    inputs = generate_inputs_pyscf(parameters=Dict(parameters))
+    inputs = generate_inputs_pyscf(parameters=parameters)
 
-    with pytest.raises(ValueError, match=r'specified mean field method invalid is not supported'):
+    with pytest.raises(ValueError, match=r'Specified mean field method invalid is not supported'):
         generate_calc_job(PyscfCalculation, inputs=inputs)
 
 
