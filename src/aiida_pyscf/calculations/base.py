@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import numbers
+import pathlib
 import typing as t
 
 from aiida.common.datastructures import CalcInfo, CodeInfo
@@ -24,6 +25,7 @@ class PyscfCalculation(CalcJob):
     FILENAME_STDERR: str = 'aiida.err'
     FILENAME_STDOUT: str = 'aiida.out'
     FILENAME_RESULTS: str = 'results.json'
+    FILEPATH_LOG_INI: pathlib.Path = pathlib.Path(__file__).parent / 'templates' / 'geometric_log.ini'
     MAIN_TEMPLATE: str = 'pyscf/script.py.j2'
 
     @classmethod
@@ -153,6 +155,9 @@ class PyscfCalculation(CalcJob):
         parameters.setdefault('mean_field', {})
         parameters.setdefault('results', {})['filename_output'] = self.FILENAME_RESULTS
 
+        if 'optimizer' in parameters:
+            parameters['optimizer'].setdefault('convergence_parameters', {})['logIni'] = 'log.ini'
+
         return parameters
 
     @classmethod
@@ -220,5 +225,9 @@ class PyscfCalculation(CalcJob):
 
         if 'fcidump' in parameters:
             calcinfo.retrieve_temporary_list.append('*.fcidump')
+
+        if 'optimizer' in parameters:
+            with self.FILEPATH_LOG_INI.open('rb') as handle:
+                folder.create_file_from_filelike(handle, 'log.ini')
 
         return calcinfo
