@@ -30,7 +30,7 @@ def main():
 
     # Section: Mean field
     from pyscf import scf
-    mean_field = scf.UKS(structure)
+    mean_field = scf.RHF(structure)
     mean_field_start = time.perf_counter()
     mean_field_run = mean_field.run()
 

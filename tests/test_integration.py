@@ -9,6 +9,7 @@ def test_pyscf_base_mean_field(aiida_local_code_factory, generate_structure, dat
     code = aiida_local_code_factory('pyscf.base', 'python')
     builder = code.get_builder()
     builder.structure = generate_structure()
+    builder.parameters = orm.Dict({'mean_field': {'method': 'RHF'}})
 
     results, node = engine.run_get_node(builder)
     assert node.is_finished_ok
@@ -24,8 +25,17 @@ def test_pyscf_base_mean_field(aiida_local_code_factory, generate_structure, dat
     # The structure is a water molecule with ideal structure so forces are close to zero. They are compared using the
     # ``num_regression`` fixture to account for negligible float value differences.
     forces = parameters.pop('forces')
-    num_regression.check({'forces': numpy.array(forces).flatten()}, default_tolerance={'atol': 1e-4, 'rtol': 1e-18})
-
+    total_energy = parameters.pop('total_energy')
+    num_regression.check(
+        {
+            'forces': numpy.array(forces).flatten(),
+            'total_energy': total_energy,
+        },
+        default_tolerance={
+            'atol': 1e-4,
+            'rtol': 1e-18
+        },
+    )
     data_regression.check(parameters)
 
 
@@ -37,6 +47,9 @@ def test_pyscf_base_geometry_optimization(
     builder = code.get_builder()
     builder.structure = generate_structure()
     builder.parameters = orm.Dict({
+        'mean_field': {
+            'method': 'RHF'
+        },
         'optimizer': {
             'solver': 'geomeTRIC',
         },
@@ -54,13 +67,15 @@ def test_pyscf_base_geometry_optimization(
 
     # The structure is a water molecule with ideal structure so forces are close to zero. They are compared using the
     # ``num_regression`` fixture to account for negligible float value differences. The same goes for the optimized
-    # coordinates which can have small fluctuations due to randomness in the relaxation path.
+    # coordinates which can have small fluctuations due to randomness in the relaxation path, as well as total energy.
     forces = parameters.pop('forces')
     optimized_coordinates = parameters.pop('optimized_coordinates')
+    total_energy = parameters.pop('total_energy')
     num_regression.check(
         {
             'forces': numpy.array(forces).flatten(),
-            'optimized_coordinates': numpy.array(optimized_coordinates).flatten()
+            'optimized_coordinates': numpy.array(optimized_coordinates).flatten(),
+            'total_energy': total_energy,
         },
         default_tolerance={
             'atol': 1e-4,
