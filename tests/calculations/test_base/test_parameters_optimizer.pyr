@@ -38,6 +38,7 @@ def main():
     convergence_parameters = {}
     convergence_parameters['string'] = 'value'
     convergence_parameters['convergence_energy'] = 2.0
+    convergence_parameters['logIni'] = 'log.ini'
 
     optimizer_start = time.perf_counter()
     optimizer = mean_field.Gradients().optimizer(solver='geomeTRIC')
