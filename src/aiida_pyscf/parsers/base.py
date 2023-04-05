@@ -27,14 +27,11 @@ class PyscfParser(Parser):
         dirpath_temporary = pathlib.Path(retrieved_temporary_folder) if retrieved_temporary_folder else None
 
         for filename, exit_code in (
-            (PyscfCalculation.FILENAME_STDERR, PyscfCalculation.exit_codes.ERROR_OUTPUT_STDERR_MISSING),
             (PyscfCalculation.FILENAME_STDOUT, PyscfCalculation.exit_codes.ERROR_OUTPUT_STDOUT_MISSING),
+            (PyscfCalculation.FILENAME_RESULTS, PyscfCalculation.exit_codes.ERROR_OUTPUT_RESULTS_MISSING),
         ):
             if filename not in files_retrieved:
                 return exit_code
-
-        if PyscfCalculation.FILENAME_RESULTS not in files_retrieved:
-            return self.exit_codes.ERROR_OUTPUT_RESULTS_MISSING
 
         with self.retrieved.open(PyscfCalculation.FILENAME_RESULTS, 'rb') as handle:
             parsed_json = json.load(handle)
