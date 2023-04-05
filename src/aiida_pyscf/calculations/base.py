@@ -22,7 +22,6 @@ class PyscfCalculation(CalcJob):
     """``CalcJob`` plugin for PySCF."""
 
     FILENAME_SCRIPT: str = 'script.py'
-    FILENAME_STDERR: str = 'aiida.err'
     FILENAME_STDOUT: str = 'aiida.out'
     FILENAME_RESULTS: str = 'results.json'
     FILEPATH_LOG_INI: pathlib.Path = pathlib.Path(__file__).parent / 'templates' / 'geometric_log.ini'
@@ -70,8 +69,7 @@ class PyscfCalculation(CalcJob):
         spec.output_namespace('fcidump', valid_type=SinglefileData, required=False, help='Computed fcidump files.')
 
         spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
-        spec.exit_code(303, 'ERROR_OUTPUT_STDERR_MISSING', message='The stderr output file was not retrieved.')
-        spec.exit_code(304, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
+        spec.exit_code(303, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
 
     @classmethod
     def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements,too-many-branches
@@ -211,7 +209,6 @@ class PyscfCalculation(CalcJob):
         codeinfo = CodeInfo()
         codeinfo.cmdline_params = [self.FILENAME_SCRIPT]
         codeinfo.code_uuid = self.inputs.code.uuid  # type: ignore[union-attr]
-        codeinfo.stderr_name = self.FILENAME_STDERR
         codeinfo.stdout_name = self.FILENAME_STDOUT
 
         calcinfo = CalcInfo()
@@ -219,7 +216,6 @@ class PyscfCalculation(CalcJob):
         calcinfo.retrieve_temporary_list = []
         calcinfo.retrieve_list = [
             self.FILENAME_RESULTS,
-            self.FILENAME_STDERR,
             self.FILENAME_STDOUT,
         ]
 
