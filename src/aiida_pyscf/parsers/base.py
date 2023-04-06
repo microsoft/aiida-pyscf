@@ -16,7 +16,7 @@ from aiida_pyscf.calculations.base import PyscfCalculation
 class PyscfParser(Parser):
     """Parser for a :class:`aiida_pyscf.calculations.base.PyscfCalculation` job."""
 
-    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ
+    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ,too-many-locals
         """Parse the contents of the output files stored in the ``retrieved`` output node.
 
         :returns: An exit code if the job failed.
@@ -38,7 +38,8 @@ class PyscfParser(Parser):
 
         if 'optimized_coordinates' in parsed_json:
             structure = self.node.inputs.structure.clone()
-            structure.reset_sites_positions(parsed_json['optimized_coordinates'])
+            optimized_coordinates = parsed_json.pop('optimized_coordinates') * ureg.bohr
+            structure.reset_sites_positions(optimized_coordinates.to(ureg.angstrom).magnitude.tolist())
             self.out('structure', structure)
 
         if 'total_energy' in parsed_json:
