@@ -7,5 +7,6 @@ parameters:
     - 3.6308569116546797e-16
     - -0.7016448596393244
   forces_units: eV/Å
+  is_converged: true
   total_energy: -31.34451121216409
   total_energy_units: eV

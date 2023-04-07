@@ -11,6 +11,7 @@ mean_field.{{ key }} = {{ value|render_python }}
 mean_field_start = time.perf_counter()
 mean_field_run = mean_field.run()
 
+results['is_converged'] = mean_field_run.converged
 results['timings']['mean_field'] = time.perf_counter() - mean_field_start
 results['total_energy'] = mean_field_run.e_tot
 results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()

@@ -30,9 +30,11 @@ def main():
     mean_field.xc = 'PBE'
     mean_field.grids = {'level': 3}
     mean_field.diis_start_cycle = 2
+    mean_field.chkfile = 'checkpoint.chk'
     mean_field_start = time.perf_counter()
     mean_field_run = mean_field.run()
 
+    results['is_converged'] = mean_field_run.converged
     results['timings']['mean_field'] = time.perf_counter() - mean_field_start
     results['total_energy'] = mean_field_run.e_tot
     results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()

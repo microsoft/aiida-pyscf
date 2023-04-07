@@ -1,4 +1,5 @@
 forces_units: eV/Å
+is_converged: true
 molecular_orbitals:
   labels:
   - 0 O 1s

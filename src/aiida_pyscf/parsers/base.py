@@ -67,4 +67,9 @@ class PyscfParser(Parser):
 
         self.out('parameters', Dict(parsed_json))
 
+        if not parsed_json['is_converged']:
+            filepath_temporary = pathlib.Path(retrieved_temporary_folder)  # type: ignore[arg-type]
+            self.out('checkpoint', SinglefileData(filepath_temporary / PyscfCalculation.FILENAME_CHECKPOINT))
+            return self.exit_codes.ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED
+
         return ExitCode(0)
