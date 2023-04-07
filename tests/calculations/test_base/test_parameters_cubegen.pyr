@@ -33,6 +33,10 @@ def main():
     results['timings']['mean_field'] = time.perf_counter() - mean_field_start
     results['total_energy'] = mean_field_run.e_tot
     results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()
+    results['molecular_orbitals'] = {}
+    results['molecular_orbitals']['energies'] = mean_field_run.mo_energy.tolist()
+    results['molecular_orbitals']['labels'] = structure.ao_labels()
+    results['molecular_orbitals']['occupations'] = mean_field_run.mo_occ.tolist()
 
 
     from pyscf.tools import cubegen
