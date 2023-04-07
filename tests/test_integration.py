@@ -24,12 +24,11 @@ def test_pyscf_base_mean_field(aiida_local_code_factory, generate_structure, dat
 
     # The structure is a water molecule with ideal structure so forces are close to zero. They are compared using the
     # ``num_regression`` fixture to account for negligible float value differences. The same goes for the total energy.
-    forces = parameters.pop('forces')
-    total_energy = parameters.pop('total_energy')
     num_regression.check(
         {
-            'forces': numpy.array(forces).flatten(),
-            'total_energy': total_energy,
+            'forces': numpy.array(parameters.pop('forces')).flatten(),
+            'total_energy': parameters.pop('total_energy'),
+            'mo_energies': parameters['molecular_orbitals'].pop('energies'),
         },
         default_tolerance={
             'atol': 1e-4,
@@ -73,6 +72,7 @@ def test_pyscf_base_geometry_optimization(
             'positions': numpy.array([site.position for site in results['structure'].sites]).flatten(),
             'forces': numpy.array(parameters.pop('forces')).flatten(),
             'total_energy': parameters.pop('total_energy'),
+            'mo_energies': parameters['molecular_orbitals'].pop('energies'),
         },
         default_tolerance={
             'atol': 1e-4,

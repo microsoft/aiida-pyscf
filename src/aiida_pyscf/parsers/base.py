@@ -47,6 +47,12 @@ class PyscfParser(Parser):
             parsed_json['total_energy'] = energy.to(ureg.electron_volt).magnitude
             parsed_json['total_energy_units'] = 'eV'
 
+        if 'molecular_orbitals' in parsed_json:
+            labels = parsed_json['molecular_orbitals']['labels']
+            energies = parsed_json['molecular_orbitals']['energies'] * ureg.hartree
+            parsed_json['molecular_orbitals']['energies'] = energies.to(ureg.electron_volt).magnitude
+            parsed_json['molecular_orbitals']['labels'] = [label.strip() for label in labels]
+
         if 'forces' in parsed_json:
             forces = parsed_json['forces'] * ureg.hartree / ureg.bohr
             parsed_json['forces'] = forces.to(ureg.electron_volt / ureg.angstrom).magnitude.tolist()

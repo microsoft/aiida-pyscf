@@ -1,2 +1,19 @@
 forces_units: eV/Å
+molecular_orbitals:
+  labels:
+  - 0 O 1s
+  - 0 O 2s
+  - 0 O 2px
+  - 0 O 2py
+  - 0 O 2pz
+  - 1 H 1s
+  - 2 H 1s
+  occupations:
+  - 2.0
+  - 2.0
+  - 2.0
+  - 2.0
+  - 2.0
+  - 0.0
+  - 0.0
 total_energy_units: eV
