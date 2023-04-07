@@ -3,13 +3,18 @@ from pyscf import scf
 mean_field = scf.{{ mean_field.method }}(structure)
 {% if mean_field %}
     {% for key, value in mean_field.items() %}
-        {% if key != 'method' %}
+        {% if key not in ['method', 'checkpoint'] %}
 mean_field.{{ key }} = {{ value|render_python }}
         {% endif %}
     {% endfor %}
+    {% if 'checkpoint' in mean_field %}
+density_matrix = mean_field.from_chk({{ mean_field.checkpoint|render_python }})
+    {% else %}
+density_matrix = None
+    {% endif %}
 {% endif %}
 mean_field_start = time.perf_counter()
-mean_field_run = mean_field.run()
+mean_field_run = mean_field.run(density_matrix)
 
 results['is_converged'] = mean_field_run.converged
 results['timings']['mean_field'] = time.perf_counter() - mean_field_start

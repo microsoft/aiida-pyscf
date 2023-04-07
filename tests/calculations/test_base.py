@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_pyscf.calculations.base` module."""
 # pylint: disable=redefined-outer-name
+import io
 import textwrap
 
 from aiida.manage.tests.pytest_fixtures import recursive_merge
-from aiida.orm import Dict
+from aiida.orm import Dict, SinglefileData
 from jinja2 import BaseLoader, Environment
 import pytest
 
@@ -242,3 +243,16 @@ def test_filter_render_python(file_regression):
     environment.filters['render_python'] = PyscfCalculation.filter_render_python
     rendered = environment.from_string(template).render(parameters=parameters)
     file_regression.check(rendered, encoding='utf-8', extension='.pyr')
+
+
+def test_checkpoint(generate_calc_job, generate_inputs_pyscf, file_regression):
+    """Test the ``checkpoint`` input."""
+    content_checkpoint = 'checkpoint file'
+    inputs = generate_inputs_pyscf()
+    inputs['checkpoint'] = SinglefileData(io.StringIO(content_checkpoint))
+    tmp_path, calc_info = generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    assert calc_info.provenance_exclude_list == [PyscfCalculation.FILENAME_RESTART]
+    assert (tmp_path / PyscfCalculation.FILENAME_RESTART).read_text() == content_checkpoint
+    content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
+    file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')

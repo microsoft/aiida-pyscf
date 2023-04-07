@@ -257,7 +257,14 @@ PySCF Version: 2.1.1  Date: Sun Apr  2 15:59:19 2023
 
 The plugin will automatically instruct PySCF to write a checkpoint file.
 If the calculation did not converge, it will finish with exit status `410` and the checkpoint file is attached as a `SinglefileData` as the `checkpoint` output node.
-This node can then be passed as input to a new calculation to restart from the checkpoint.
+This node can then be passed as input to a new calculation to restart from the checkpoint:
+```python
+failed_calculation = load_node(IDENTIFIER)
+builder = failed_calculation.get_builder_restart()
+builder.checkpoint = failed_calculation.outputs.checkpoint
+submit(builder)
+```
+The plugin will write the checkpoint file of the failed calculation to the working directory such that PySCF can start of from there.
 
 ## Contributing
 
