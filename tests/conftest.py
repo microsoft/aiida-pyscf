@@ -69,7 +69,7 @@ def generate_calc_job(tmp_path):
 
 
 @pytest.fixture
-def generate_calc_job_node(filepath_tests, aiida_computer_local):
+def generate_calc_job_node(filepath_tests, aiida_computer_local, tmp_path):
     """Create and return a :class:`aiida.orm.CalcJobNode` instance."""
 
     def flatten_inputs(inputs, prefix=''):
@@ -82,7 +82,9 @@ def generate_calc_job_node(filepath_tests, aiida_computer_local):
                 flat_inputs.append((prefix + key, value))
         return flat_inputs
 
-    def factory(entry_point: str, test_name: str | None = None, inputs: dict = None):
+    def factory(
+        entry_point: str, test_name: str, inputs: dict = None, retrieve_temporary_list: list[str] | None = None
+    ):
         """Create and return a :class:`aiida.orm.CalcJobNode` instance."""
         node = CalcJobNode(computer=aiida_computer_local(), process_type=f'aiida.calculations:{entry_point}')
 
@@ -93,13 +95,20 @@ def generate_calc_job_node(filepath_tests, aiida_computer_local):
 
         node.store()
 
-        if test_name:
-            filepath_retrieved = filepath_tests / 'parsers' / 'fixtures' / entry_point.split('.')[-1] / test_name
+        filepath_retrieved = filepath_tests / 'parsers' / 'fixtures' / entry_point.split('.')[-1] / test_name
 
-            retrieved = FolderData()
-            retrieved.base.repository.put_object_from_tree(filepath_retrieved)
-            retrieved.base.links.add_incoming(node, link_type=LinkType.CREATE, link_label='retrieved')
-            retrieved.store()
+        retrieved = FolderData()
+        retrieved.base.repository.put_object_from_tree(filepath_retrieved)
+        retrieved.base.links.add_incoming(node, link_type=LinkType.CREATE, link_label='retrieved')
+        retrieved.store()
+
+        if retrieve_temporary_list:
+            for pattern in retrieve_temporary_list:
+                for filename in filepath_retrieved.glob(pattern):
+                    filepath = tmp_path / filename.relative_to(filepath_retrieved)
+                    filepath.write_bytes(filename.read_bytes())
+
+            return node, tmp_path
 
         return node
 
@@ -144,7 +153,7 @@ def generate_workchain_pyscf_base(generate_workchain, generate_inputs_pyscf, gen
         :param exit_code: exit code for the ``PyscfCalculation``.
         """
         process = generate_workchain('pyscf.base', {'pyscf': inputs or generate_inputs_pyscf()})
-        node = generate_calc_job_node('pyscf.base', inputs={'parameters': Dict()})
+        node = generate_calc_job_node('pyscf.base', 'default', inputs={'parameters': Dict()})
         process.ctx.iteration = 1
         process.ctx.children = [node]
 
