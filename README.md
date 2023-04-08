@@ -14,6 +14,7 @@ An [AiiDA](https://www.aiida.net) plugin for the [Python-based Simulations of Ch
     * [Optimizing geometry](#optimizing-geometry)
     * [Writing Hamiltonian to FCIDUMP files](#writing-hamiltonian-to-fcidump-files)
     * [Writing orbitals to CUBE files](#writing-orbitals-to-cube-files)
+    * [Restarting unconverged calculations](#restarting-unconverged-calculations)
 
 ## Installation
 
@@ -251,6 +252,12 @@ PySCF Version: 2.1.1  Date: Sun Apr  2 15:59:19 2023
  -6.20809E-04 -7.62048E-04 -9.14724E-04 -1.07439E-03 -1.23579E-03 -1.39331E-03
   ...
 ```
+
+### Restarting unconverged calculations
+
+The plugin will automatically instruct PySCF to write a checkpoint file.
+If the calculation did not converge, it will finish with exit status `410` and the checkpoint file is attached as a `SinglefileData` as the `checkpoint` output node.
+This node can then be passed as input to a new calculation to restart from the checkpoint.
 
 ## Contributing
 

@@ -24,6 +24,7 @@ class PyscfCalculation(CalcJob):
     FILENAME_SCRIPT: str = 'script.py'
     FILENAME_STDOUT: str = 'aiida.out'
     FILENAME_RESULTS: str = 'results.json'
+    FILENAME_CHECKPOINT: str = 'checkpoint.chk'
     FILEPATH_LOG_INI: pathlib.Path = pathlib.Path(__file__).parent / 'templates' / 'geometric_log.ini'
     MAIN_TEMPLATE: str = 'pyscf/script.py.j2'
 
@@ -65,11 +66,22 @@ class PyscfCalculation(CalcJob):
             required=False,
             help='The optimized structure if the input parameters contained the `optimizer` key.',
         )
+        spec.output(
+            'checkpoint',
+            valid_type=SinglefileData,
+            required=False,
+            help='The checkpoint file in case the calculation did not converge. Can be used as an input for a restart.',
+        )
         spec.output_namespace('cubegen', valid_type=SinglefileData, required=False, help='Computed cube files.')
         spec.output_namespace('fcidump', valid_type=SinglefileData, required=False, help='Computed fcidump files.')
 
         spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
         spec.exit_code(303, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
+        spec.exit_code(
+            410,
+            'ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED',
+            message='The electronic minimization cycle did not reach self-consistency.'
+        )
 
     @classmethod
     def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements,too-many-branches
@@ -88,6 +100,12 @@ class PyscfCalculation(CalcJob):
 
         if mean_field_method not in valid_methods:
             return f'Specified mean field method {mean_field_method} is not supported, choose from: {options}'
+
+        if 'chkfile' in parameters.get('mean_field', {}):
+            return (
+                'The `chkfile` cannot be specified in the `mean_field` parameters. It is set automatically by the '
+                'plugin if the `checkpoint` input is provided.'
+            )
 
         if 'optimizer' in parameters:
             valid_solvers = ('geometric', 'berny')
@@ -159,6 +177,8 @@ class PyscfCalculation(CalcJob):
         if 'optimizer' in parameters:
             parameters['optimizer'].setdefault('convergence_parameters', {})['logIni'] = 'log.ini'
 
+        parameters['mean_field']['chkfile'] = self.FILENAME_CHECKPOINT
+
         return parameters
 
     @classmethod
@@ -213,7 +233,7 @@ class PyscfCalculation(CalcJob):
 
         calcinfo = CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.retrieve_temporary_list = []
+        calcinfo.retrieve_temporary_list = [self.FILENAME_CHECKPOINT]
         calcinfo.retrieve_list = [
             self.FILENAME_RESULTS,
             self.FILENAME_STDOUT,

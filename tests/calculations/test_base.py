@@ -47,6 +47,10 @@ def test_default(generate_calc_job, generate_inputs_pyscf, file_regression):
         PyscfCalculation.FILENAME_STDOUT,
     ])
 
+    assert sorted(calc_info.retrieve_temporary_list) == sorted([
+        PyscfCalculation.FILENAME_CHECKPOINT,
+    ])
+
     content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
 
@@ -149,6 +153,15 @@ def test_invalid_parameters_mean_field_method(generate_calc_job, generate_inputs
     inputs = generate_inputs_pyscf(parameters=parameters)
 
     with pytest.raises(ValueError, match=r'Specified mean field method invalid is not supported'):
+        generate_calc_job(PyscfCalculation, inputs=inputs)
+
+
+def test_invalid_parameters_mean_field_chkfile(generate_calc_job, generate_inputs_pyscf):
+    """Test validation of ``parameters.mean_field.chkfile``, is not allowed as set automatically by plugin."""
+    parameters = {'mean_field': {'chkfile': 'file.chk'}}
+    inputs = generate_inputs_pyscf(parameters=parameters)
+
+    with pytest.raises(ValueError, match=r'The `chkfile` cannot be specified in the `mean_field` parameters.*'):
         generate_calc_job(PyscfCalculation, inputs=inputs)
 
 

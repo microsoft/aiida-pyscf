@@ -40,6 +40,18 @@ def test_failed_missing_result(generate_calc_job_node, generate_parser):
     assert calcfunction.exit_status == PyscfCalculation.exit_codes.ERROR_OUTPUT_RESULTS_MISSING.status
 
 
+def test_failed_electronic_convergence(generate_calc_job_node, generate_parser):
+    """Test parsing the results of a calculation that failed to converge electronically."""
+    node, tmp_path = generate_calc_job_node(
+        'pyscf.base', 'failed_electronic_convergence', retrieve_temporary_list=['*.chk']
+    )
+    parser = generate_parser('pyscf.base')
+    _, calcfunction = parser.parse_from_node(node, retrieved_temporary_folder=tmp_path, store_provenance=False)
+
+    assert calcfunction.is_failed
+    assert calcfunction.exit_status == PyscfCalculation.exit_codes.ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED.status
+
+
 def test_cubegen(generate_calc_job_node, generate_parser, generate_structure):
     """Test parsing the outputs of a job that computed CUBE files."""
     inputs = {'structure': generate_structure('N2')}
