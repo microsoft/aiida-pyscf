@@ -3,6 +3,8 @@
 from aiida import engine, orm
 import numpy
 
+from aiida_pyscf.workflows.base import PyscfBaseWorkChain
+
 
 def test_pyscf_base_mean_field(aiida_local_code_factory, generate_structure, data_regression, num_regression):
     """Test running a default mean field ``PyscfCalculation`` job."""
@@ -121,3 +123,22 @@ def test_pyscf_base_fcidump(aiida_local_code_factory, generate_structure):
     assert node.is_finished_ok
     assert 'fcidump' in results
     assert all(isinstance(node, orm.SinglefileData) for node in results['fcidump'].values())
+
+
+def test_pyscf_base_work_chain(aiida_local_code_factory, generate_structure):
+    """Test a ``PyscfBaseWorkChain``: test the automatic restart after SCF fails to converge."""
+    builder = PyscfBaseWorkChain.get_builder()
+    builder.pyscf.code = aiida_local_code_factory('pyscf.base', 'python')  # pylint: disable=no-member
+    builder.pyscf.structure = generate_structure(formula='H2O')  # pylint: disable=no-member
+    builder.pyscf.parameters = orm.Dict(  # pylint: disable=no-member
+        {
+            'mean_field': {
+                'method': 'RHF',
+                'max_cycle': 3,
+            }
+        }
+    )
+    results, node = engine.run_get_node(builder)
+    assert node.is_finished_ok
+    assert [calcjob.exit_status for calcjob in sorted(node.called, key=lambda n: n.ctime)] == [410, 410, 0]
+    assert 'parameters' in results

@@ -58,3 +58,18 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
         if node.is_failed and node.exit_status < 400:
             self.report_error_handled(node, 'unrecoverable error, aborting...')
             return ProcessHandlerReport(True, self.exit_codes.ERROR_UNRECOVERABLE_FAILURE)
+
+    @process_handler(
+        priority=410,
+        exit_codes=[
+            PyscfCalculation.exit_codes.ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED,  # type: ignore[union-attr]
+        ]
+    )
+    def handle_electronic_convergence_not_reached(self, node):
+        """Handle ``ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED`` error.
+
+        Simply restart the calculation using the ``checkpoint`` of the failed calculation as starting point.
+        """
+        self.ctx.inputs.checkpoint = node.outputs.checkpoint
+        self.report_error_handled(node, 'restarting from the last checkpoint.')
+        return ProcessHandlerReport(True)

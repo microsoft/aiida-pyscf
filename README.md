@@ -15,6 +15,7 @@ An [AiiDA](https://www.aiida.net) plugin for the [Python-based Simulations of Ch
     * [Writing Hamiltonian to FCIDUMP files](#writing-hamiltonian-to-fcidump-files)
     * [Writing orbitals to CUBE files](#writing-orbitals-to-cube-files)
     * [Restarting unconverged calculations](#restarting-unconverged-calculations)
+    * [Automatic error recovery](#automatic-error-recovery)
 
 ## Installation
 
@@ -265,6 +266,46 @@ builder.checkpoint = failed_calculation.outputs.checkpoint
 submit(builder)
 ```
 The plugin will write the checkpoint file of the failed calculation to the working directory such that PySCF can start of from there.
+
+
+### Automatic error recovery
+
+There are a variety of reasons why a PySCF calculation may not finish with the intended result.
+Examples are the self-consistent field cycle not converging or the job getting killed by the scheduler because it ran out of the requested walltime.
+The `PyscfBaseWorkChain` is designed to try and automatically recover from these kinds of errors whenever it can potentially be handled.
+It is a simple wrapper around the `PyscfCalculation` plugin that automatically restarts a new `PyscfCalculation` if the previous iterations failed.
+Launching a `PyscfBaseWorkChain` is almost identical to launching a `PyscfCalculation` directly; the inputs just have to be "nested" inside the `pyscf` namespace:
+```python
+from aiida.engine import run
+from aiida.orm import Dict, StructureData, load_code, load_node
+from aiida_pyscf.workflows.base import PyscfBaseWorkChain
+from ase.build import molecule
+
+builder = PyscfBaseWorkChain.get_builder()
+builder.pyscf.code = load_code('pyscf')
+builder.pyscf.structure = StructureData(ase=molecule('H2O'))
+builder.pyscf.parameters = Dict({
+    'mean_field': {
+        'method': 'RHF',
+        'max_cycle': 3,
+    }
+})
+results, node = run.get_node(builder)
+```
+In this example, we purposefully set the maximum number of iterations in the self-consistent field cycle to 3 (`'mean_field.max_cycle' = 3`), which will cause the first iteration to fail to reach convergence.
+The `PyscfBaseWorkChain` detects the error, indicated by exit status `410` on the `PyscfCalculation`, and automatically restarts the calculation from the saved checkpoint.
+After three iterations, the calculation converges:
+```console
+$ verdi process status IDENTIFIER
+PyscfBaseWorkChain<30126> Finished [0] [2:results]
+    ├── PyscfCalculation<30127> Finished [410]
+    ├── PyscfCalculation<30132> Finished [410]
+    └── PyscfCalculation<30137> Finished [0]
+```
+The following error modes are currently handled by the `PyscfBaseWorkChain`:
+
+* Electronic convergence not achieved
+
 
 ## Contributing
 
