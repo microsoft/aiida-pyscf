@@ -4,13 +4,14 @@
 from __future__ import annotations
 
 import collections
+import io
 import pathlib
 
 from aiida.common.folders import Folder
 from aiida.common.links import LinkType
 from aiida.engine.utils import instantiate_process
 from aiida.manage.manager import get_manager
-from aiida.orm import CalcJobNode, Dict, FolderData, StructureData
+from aiida.orm import CalcJobNode, Dict, FolderData, SinglefileData, StructureData
 from aiida.plugins import ParserFactory, WorkflowFactory
 from ase.build import molecule
 from plumpy import ProcessState
@@ -160,6 +161,10 @@ def generate_workchain_pyscf_base(generate_workchain, generate_inputs_pyscf, gen
         if exit_code is not None:
             node.set_process_state(ProcessState.FINISHED)
             node.set_exit_status(exit_code.status)
+
+            checkpoint = SinglefileData(io.StringIO('content'))
+            checkpoint.base.links.add_incoming(node, link_type=LinkType.CREATE, link_label='checkpoint')
+            checkpoint.store()
 
         return process
 
