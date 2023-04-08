@@ -14,6 +14,7 @@ from aiida.orm import Dict, SinglefileData, StructureData
 from ase.io.xyz import write_xyz
 from jinja2 import Environment, PackageLoader, PrefixLoader
 import numpy as np
+from plumpy.utils import AttributesFrozendict
 
 __all__ = ('PyscfCalculation',)
 
@@ -25,6 +26,7 @@ class PyscfCalculation(CalcJob):
     FILENAME_STDOUT: str = 'aiida.out'
     FILENAME_RESULTS: str = 'results.json'
     FILENAME_CHECKPOINT: str = 'checkpoint.chk'
+    FILENAME_RESTART: str = 'restart.chk'
     FILEPATH_LOG_INI: pathlib.Path = pathlib.Path(__file__).parent / 'templates' / 'geometric_log.ini'
     MAIN_TEMPLATE: str = 'pyscf/script.py.j2'
 
@@ -47,6 +49,12 @@ class PyscfCalculation(CalcJob):
             validator=cls.validate_parameters,
             required=False,
             help='Input parameters used to render the PySCF script template.',
+        )
+        spec.input(
+            'checkpoint',
+            valid_type=SinglefileData,
+            required=False,
+            help='Checkpoint of a previously completed calculation that failed to converge.',
         )
         spec.inputs['code'].required = True
 
@@ -157,6 +165,15 @@ class PyscfCalculation(CalcJob):
         environment.filters['render_python'] = self.filter_render_python
         return environment
 
+    @property
+    def inputs(self) -> AttributesFrozendict:
+        """Return the inputs attribute dictionary or an empty one.
+
+        This overrides the property of the base class because that can also return ``None``. This override ensures
+        calling functions that they will always get an instance of ``AttributesFrozenDict``.
+        """
+        return super().inputs or AttributesFrozendict()
+
     def get_parameters(self) -> dict[str, t.Any]:
         """Return the parameters to use for renderning the input script.
 
@@ -165,8 +182,8 @@ class PyscfCalculation(CalcJob):
 
         :returns: Complete dictionary of parameters to render the input script.
         """
-        if 'parameters' in self.inputs:  # type: ignore[operator]
-            parameters = self.inputs.parameters.get_dict()  # type: ignore[union-attr]
+        if 'parameters' in self.inputs:
+            parameters = self.inputs.parameters.get_dict()
         else:
             parameters = {}
 
@@ -178,6 +195,9 @@ class PyscfCalculation(CalcJob):
             parameters['optimizer'].setdefault('convergence_parameters', {})['logIni'] = 'log.ini'
 
         parameters['mean_field']['chkfile'] = self.FILENAME_CHECKPOINT
+
+        if 'checkpoint' in self.inputs:
+            parameters['mean_field']['checkpoint'] = self.FILENAME_RESTART
 
         return parameters
 
@@ -210,7 +230,7 @@ class PyscfCalculation(CalcJob):
     def prepare_structure_xyz(self) -> str:
         """Return the input structure in XYZ format without the two leading header lines."""
         stream = io.StringIO()
-        write_xyz(stream, [self.inputs.structure.get_ase()])  # type: ignore[union-attr]
+        write_xyz(stream, [self.inputs.structure.get_ase()])
         stream.seek(0)
         return '\n'.join(stream.read().split('\n')[2:])
 
@@ -228,16 +248,22 @@ class PyscfCalculation(CalcJob):
 
         codeinfo = CodeInfo()
         codeinfo.cmdline_params = [self.FILENAME_SCRIPT]
-        codeinfo.code_uuid = self.inputs.code.uuid  # type: ignore[union-attr]
+        codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.FILENAME_STDOUT
 
         calcinfo = CalcInfo()
         calcinfo.codes_info = [codeinfo]
+        calcinfo.provenance_exclude_list = []
         calcinfo.retrieve_temporary_list = [self.FILENAME_CHECKPOINT]
         calcinfo.retrieve_list = [
             self.FILENAME_RESULTS,
             self.FILENAME_STDOUT,
         ]
+
+        if 'checkpoint' in self.inputs:
+            with self.inputs.checkpoint.open(mode='rb') as handle:
+                folder.create_file_from_filelike(handle, self.FILENAME_RESTART)
+            calcinfo.provenance_exclude_list.append(self.FILENAME_RESTART)
 
         if 'cubegen' in parameters:
             calcinfo.retrieve_temporary_list.append('*.cube')

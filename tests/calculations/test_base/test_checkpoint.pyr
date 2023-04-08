@@ -16,10 +16,6 @@ def main():
     # Section: Structure definition
     from pyscf import gto
     structure = gto.Mole()
-    structure.cart = True
-    structure.spin = 2
-    structure.basis = {'H': 'cc-pvdz', 'O': 'sto-3g'}
-    structure.charge = 1
     structure.unit = 'Ang'
     structure.atom = """
     O       0.000000000000000      0.000000000000000      0.119262000000000
@@ -32,7 +28,7 @@ def main():
     from pyscf import scf
     mean_field = scf.RHF(structure)
     mean_field.chkfile = 'checkpoint.chk'
-    density_matrix = None
+    density_matrix = mean_field.from_chk('restart.chk')
     mean_field_start = time.perf_counter()
     mean_field_run = mean_field.run(density_matrix)
 
