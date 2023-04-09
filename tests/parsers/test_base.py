@@ -30,6 +30,17 @@ def test_relax(generate_calc_job_node, generate_parser, generate_structure, data
     data_regression.check({'structure': results['structure'].base.attributes.all})
 
 
+def test_failed_out_of_walltime(generate_calc_job_node, generate_parser):
+    """Test parsing a retrieved folder where the job got interrupted by the scheduler because it ran out of walltime."""
+    node = generate_calc_job_node('pyscf.base', 'failed_out_of_walltime')
+    node.set_exit_status(PyscfCalculation.exit_codes.ERROR_SCHEDULER_OUT_OF_WALLTIME.status)
+    parser = generate_parser('pyscf.base')
+    _, calcfunction = parser.parse_from_node(node, store_provenance=False)
+
+    assert calcfunction.is_failed
+    assert calcfunction.exit_status == PyscfCalculation.exit_codes.ERROR_SCHEDULER_OUT_OF_WALLTIME.status
+
+
 def test_failed_missing_result(generate_calc_job_node, generate_parser):
     """Test parsing a retrieved folder where the result output file is missing."""
     node = generate_calc_job_node('pyscf.base', 'failed_missing_result')
