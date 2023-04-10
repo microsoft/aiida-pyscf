@@ -29,6 +29,11 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
         spec.exit_code(
             300, 'ERROR_UNRECOVERABLE_FAILURE', message='The calculation failed with an unrecoverable error.'
         )
+        spec.exit_code(
+            310,
+            'ERROR_NO_CHECKPOINT_TO_RESTART',
+            message='The calculation failed and did not retrieve a checkpoint file from which can be restarted.'
+        )
 
     def setup(self):
         """Call the `setup` of the `BaseRestartWorkChain` and then create the inputs dictionary in `self.ctx.inputs`.
@@ -70,6 +75,26 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
 
         Simply restart the calculation using the ``checkpoint`` of the failed calculation as starting point.
         """
+        self.ctx.inputs.checkpoint = node.outputs.checkpoint
+        self.report_error_handled(node, 'restarting from the last checkpoint.')
+        return ProcessHandlerReport(True)
+
+    @process_handler(
+        priority=100,
+        exit_codes=[
+            PyscfCalculation.exit_codes.ERROR_SCHEDULER_OUT_OF_WALLTIME,  # type: ignore[union-attr]
+        ]
+    )
+    def handle_out_of_walltime(self, node):
+        """Handle ``ERROR_SCHEDULER_OUT_OF_WALLTIME`` error.
+
+        Simply restart the calculation using the ``checkpoint`` if it was retrieved, otherwise abort since having to
+        restart from scratch with the same walltime is likely going to fail again.
+        """
+        if 'checkpoint' not in node.outputs:
+            self.report_error_handled(node, 'aborting because the failed calculation does not provide a checkpoint.')
+            return ProcessHandlerReport(True, self.exit_codes.ERROR_NO_CHECKPOINT_TO_RESTART)
+
         self.ctx.inputs.checkpoint = node.outputs.checkpoint
         self.report_error_handled(node, 'restarting from the last checkpoint.')
         return ProcessHandlerReport(True)

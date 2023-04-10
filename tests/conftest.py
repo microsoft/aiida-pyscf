@@ -4,14 +4,13 @@
 from __future__ import annotations
 
 import collections
-import io
 import pathlib
 
 from aiida.common.folders import Folder
 from aiida.common.links import LinkType
 from aiida.engine.utils import instantiate_process
 from aiida.manage.manager import get_manager
-from aiida.orm import CalcJobNode, Dict, FolderData, SinglefileData, StructureData
+from aiida.orm import CalcJobNode, Dict, FolderData, StructureData
 from aiida.plugins import ParserFactory, WorkflowFactory
 from ase.build import molecule
 from plumpy import ProcessState
@@ -147,24 +146,26 @@ def generate_structure():
 def generate_workchain_pyscf_base(generate_workchain, generate_inputs_pyscf, generate_calc_job_node):
     """Return a factory to generate a :class:`aiida_pyscf.workflows.base.PyscfBaseWorkChain` instance."""
 
-    def factory(inputs=None, exit_code=None):
+    def factory(inputs=None, exit_code=None, outputs=None):
         """Generate a :class:`aiida_pyscf.workflows.base.PyscfBaseWorkChain` instance.``.
 
-        :param inputs: inputs for the ``PyscfBaseWorkChain``.
-        :param exit_code: exit code for the ``PyscfCalculation``.
+        :param inputs: Inputs for the ``PyscfBaseWorkChain``.
+        :param exit_code: Exit code to set on the ``PyscfCalculation`` node.
+        :param outputs: Optional outputs to set on the ``PyscfCalculation`` node.
         """
         process = generate_workchain('pyscf.base', {'pyscf': inputs or generate_inputs_pyscf()})
         node = generate_calc_job_node('pyscf.base', 'default', inputs={'parameters': Dict()})
         process.ctx.iteration = 1
         process.ctx.children = [node]
 
+        if outputs:
+            for key, value in outputs.items():
+                value.base.links.add_incoming(node, link_label=key, link_type=LinkType.CREATE)
+                value.store()
+
         if exit_code is not None:
             node.set_process_state(ProcessState.FINISHED)
             node.set_exit_status(exit_code.status)
-
-            checkpoint = SinglefileData(io.StringIO('content'))
-            checkpoint.base.links.add_incoming(node, link_type=LinkType.CREATE, link_label='checkpoint')
-            checkpoint.store()
 
         return process
 

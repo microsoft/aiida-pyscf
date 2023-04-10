@@ -304,7 +304,8 @@ PyscfBaseWorkChain<30126> Finished [0] [2:results]
 ```
 The following error modes are currently handled by the `PyscfBaseWorkChain`:
 
-* Electronic convergence not achieved
+* \[410\]: Electronic convergence not achieved: The calculation will be restarted from the last checkpoint
+* \[120\]: Out of walltime: The calculation will be restarted from the last checkpoint if available, otherwise the work chain is aborted
 
 
 ## Contributing
