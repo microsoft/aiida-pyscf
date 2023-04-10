@@ -31,6 +31,9 @@ class PyscfParser(Parser):
             (PyscfCalculation.FILENAME_RESULTS, PyscfCalculation.exit_codes.ERROR_OUTPUT_RESULTS_MISSING),
         ):
             if filename not in files_retrieved:
+                # If an exit status has already been set by the scheduler, keep that by returning instead of overriding.
+                if self.node.exit_status is not None:
+                    return ExitCode(self.node.exit_status, self.node.exit_message)
                 return exit_code
 
         with self.retrieved.open(PyscfCalculation.FILENAME_RESULTS, 'rb') as handle:
