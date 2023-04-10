@@ -299,9 +299,10 @@ PyscfBaseWorkChain<30126> Finished [0] [2:results]
 ```
 The following error modes are currently handled by the `PyscfBaseWorkChain`:
 
-* \[120\]: Out of walltime: The calculation will be restarted from the last checkpoint if available, otherwise the work chain is aborted
-* \[410\]: Electronic convergence not achieved: The calculation will be restarted from the last checkpoint
-* \[500\]: Ionic convergence not achieved: The geometry optmizization did not converge, calculation will be restarted from the last checkpoint and structure
+* `120`: Out of walltime: The calculation will be restarted from the last checkpoint if available, otherwise the work chain is aborted
+* `140`: Node failure: The calculation will be restarted from the last checkpoint
+* `410`: Electronic convergence not achieved: The calculation will be restarted from the last checkpoint
+* `500`: Ionic convergence not achieved: The geometry optmizization did not converge, calculation will be restarted from the last checkpoint and structure
 
 
 ## Contributing

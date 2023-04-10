@@ -107,6 +107,24 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
         return ProcessHandlerReport(True)
 
     @process_handler(
+        priority=110,
+        exit_codes=[
+            PyscfCalculation.exit_codes.ERROR_SCHEDULER_NODE_FAILURE,  # type: ignore[union-attr]
+        ]
+    )
+    def handle_scheduler_node_failure(self, node):
+        """Handle ``ERROR_SCHEDULER_NODE_FAILURE`` error.
+
+        Simply restart the calculation using the last available ``checkpoint``, which is the output checkpoint of the
+        failed calculation if available, or the previous checkpoint that was used in the inputs.
+        """
+        if 'checkpoint' in node.outputs:
+            self.ctx.inputs.checkpoint = node.outputs.checkpoint
+
+        self.report_error_handled(node, 'restarting from the last checkpoint.')
+        return ProcessHandlerReport(True)
+
+    @process_handler(
         priority=100,
         exit_codes=[
             PyscfCalculation.exit_codes.ERROR_SCHEDULER_OUT_OF_WALLTIME,  # type: ignore[union-attr]
