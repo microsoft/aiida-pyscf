@@ -6,11 +6,15 @@ import json
 import pathlib
 
 from aiida.engine import ExitCode
-from aiida.orm import Dict, SinglefileData
+from aiida.orm import Dict, SinglefileData, TrajectoryData
 from aiida.parsers.parser import Parser
+from ase.io.extxyz import read_extxyz
+import numpy
 from pint import UnitRegistry
 
 from aiida_pyscf.calculations.base import PyscfCalculation
+
+ureg = UnitRegistry()
 
 
 class PyscfParser(Parser):
@@ -26,7 +30,6 @@ class PyscfParser(Parser):
 
         :returns: An exit code if the job failed.
         """
-        ureg = UnitRegistry()
         self.dirpath_temporary = pathlib.Path(retrieved_temporary_folder) if retrieved_temporary_folder else None
 
         try:
@@ -57,7 +60,7 @@ class PyscfParser(Parser):
         if 'molecular_orbitals' in results_mean_field:
             labels = results_mean_field['molecular_orbitals']['labels']
             energies = results_mean_field['molecular_orbitals']['energies'] * ureg.hartree
-            results_mean_field['molecular_orbitals']['energies'] = energies.to(ureg.electron_volt).magnitude
+            results_mean_field['molecular_orbitals']['energies'] = energies.to(ureg.electron_volt).magnitude.tolist()
             results_mean_field['molecular_orbitals']['labels'] = [label.strip() for label in labels]
 
         if 'forces' in results_mean_field:
@@ -72,6 +75,12 @@ class PyscfParser(Parser):
             for filepath_fcidump in self.dirpath_temporary.glob('*.fcidump'):
                 self.out(f'fcidump.{filepath_fcidump.stem}', SinglefileData(filepath_fcidump))
 
+            filepath_trajectory = list(self.dirpath_temporary.glob('*_optim.xyz'))
+            if filepath_trajectory:
+                # There should be only one file that matches the pattern in the glob.
+                trajectory = self.build_output_trajectory(filepath_trajectory[0])
+                self.out('trajectory', trajectory)
+
         self.out('parameters', Dict(parsed_json))
 
         if results_mean_field['is_converged'] is False:
@@ -81,6 +90,43 @@ class PyscfParser(Parser):
             return self.handle_failure('ERROR_IONIC_CONVERGENCE_NOT_REACHED', override_scheduler=True)
 
         return ExitCode(0)
+
+    def build_output_trajectory(self, filepath_trajectory: pathlib.Path) -> TrajectoryData:
+        """Build the ``TrajectoryData`` output node from the optimization file.
+
+        :param filepath_trajectory: The filepath to the file containing the trajectory frames in XYZ format.
+        :returns: The trajectory output node.
+        """
+        positions = []
+        energies = []
+
+        def batch(iterable, batch_size):
+            """Split an iterable into a list of elements which size ``batch_size."""
+            return [iterable[i:i + batch_size] for i in range(0, len(iterable), batch_size)]
+
+        with filepath_trajectory.open() as handle:
+            for atoms in read_extxyz(handle, index=slice(None, None)):
+                positions.append(atoms.positions.tolist())
+                # The ``atoms.info`` contains the parsed contents of the comment line in the XYZ frame. The geometry
+                # optimizer does not use proper extended XYZ format, which is parsed by ASE as:
+                #   {'Iteration': True, '0': True, 'Energy': True, '-74.96440482': True}
+                # We convert this into a dictionary to extract the energy.
+                properties = dict(batch(list(atoms.info), 2))
+                energies.append(float(properties['Energy']))
+
+        # Since the geometry optimization only supports atomic relaxation, the cell is fixed. The cells and the arrays
+        # of symbols are therefore static and the input cell and symbol list can be copied for the number of frames.
+        nframes = len(positions)
+        trajectory = TrajectoryData()
+        trajectory.set_trajectory(
+            stepids=numpy.arange(nframes),
+            cells=numpy.array([self.node.inputs.structure.cell] * nframes),
+            symbols=[site.kind_name for site in self.node.inputs.structure.sites],
+            positions=numpy.array(positions),
+        )
+        trajectory.set_array('energies', (numpy.array(energies) * ureg.hartree).to(ureg.electron_volt).magnitude)
+
+        return trajectory
 
     def handle_failure(self, exit_code_label: str, override_scheduler: bool = False) -> ExitCode:
         """Return the exit code corresponding to the given label unless the scheduler.

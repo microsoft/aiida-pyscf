@@ -10,7 +10,7 @@ import typing as t
 from aiida.common.datastructures import CalcInfo, CodeInfo
 from aiida.common.folders import Folder
 from aiida.engine import CalcJob, CalcJobProcessSpec
-from aiida.orm import Dict, SinglefileData, StructureData
+from aiida.orm import Dict, SinglefileData, StructureData, TrajectoryData
 from ase.io.xyz import write_xyz
 from jinja2 import Environment, PackageLoader, PrefixLoader
 import numpy as np
@@ -73,6 +73,12 @@ class PyscfCalculation(CalcJob):
             valid_type=StructureData,
             required=False,
             help='The optimized structure if the input parameters contained the `optimizer` key.',
+        )
+        spec.output(
+            'trajectory',
+            valid_type=TrajectoryData,
+            required=False,
+            help='The geometry optimization trajectory if the input parameters contained the `optimizer` key.',
         )
         spec.output(
             'checkpoint',
@@ -277,6 +283,8 @@ class PyscfCalculation(CalcJob):
             calcinfo.retrieve_temporary_list.append('*.fcidump')
 
         if 'optimizer' in parameters:
+            calcinfo.retrieve_temporary_list.append('*_optim.xyz')
+
             with self.FILEPATH_LOG_INI.open('rb') as handle:
                 folder.create_file_from_filelike(handle, 'log.ini')
 

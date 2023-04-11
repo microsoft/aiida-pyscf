@@ -162,21 +162,12 @@ builder.parameters = Dict({
 })
 results, node = run.get_node(builder)
 ```
-The `parameters` output will contain the optimized structure coordinates:
+The optimized structure is returned in the form of a `StructureData` under the `structure` output label.
+The structure and energy of each frame in the geometry optimization trajectory, are stored in the form of a `TrajectoryData` under the `trajectory` output label.
+The total energies can be retrieved as follows:
 ```python
-print(results['parameters'].get_dict())
-{
-    ...
-    'optimizer': {
-        'optimized_coordinates': [
-            [3.6553814911922e-16, -4.4060505668964e-14, 0.2752230960058],
-            [8.5698519337032e-15, 1.4325248445029, -0.926413468005],
-            [-7.8373230766793e-15, -1.4325248445029, -0.92641346800501]
-        ]
-    }
-}
+results['trajectory'].get_array('energies')
 ```
-For convenience, the optimized structure is also returned in the form of a `StructureData` under the `structure` output label.
 
 ### Writing Hamiltonian to FCIDUMP files
 
