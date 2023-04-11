@@ -77,6 +77,9 @@ class PyscfParser(Parser):
         if results_mean_field['is_converged'] is False:
             return self.handle_failure('ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED', override_scheduler=True)
 
+        if 'optimizer' in parsed_json and parsed_json['optimizer']['is_converged'] is False:
+            return self.handle_failure('ERROR_IONIC_CONVERGENCE_NOT_REACHED', override_scheduler=True)
+
         return ExitCode(0)
 
     def handle_failure(self, exit_code_label: str, override_scheduler: bool = False) -> ExitCode:

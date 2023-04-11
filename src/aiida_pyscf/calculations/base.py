@@ -90,6 +90,11 @@ class PyscfCalculation(CalcJob):
             'ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED',
             message='The electronic minimization cycle did not reach self-consistency.'
         )
+        spec.exit_code(
+            500,
+            'ERROR_IONIC_CONVERGENCE_NOT_REACHED',
+            message='The ionic minimization cycle did not converge for the given thresholds.'
+        )
 
     @classmethod
     def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements,too-many-branches
