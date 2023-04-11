@@ -43,16 +43,17 @@ def main():
     mean_field_start = time.perf_counter()
     mean_field_run = mean_field.run(density_matrix)
 
-    results['is_converged'] = mean_field_run.converged
     results['timings']['mean_field'] = time.perf_counter() - mean_field_start
-    results['total_energy'] = mean_field_run.e_tot
-    results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()
+    results['mean_field'] = {}
+    results['mean_field']['is_converged'] = mean_field_run.converged
+    results['mean_field']['total_energy'] = mean_field_run.e_tot
+    results['mean_field']['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()
 
     if mean_field_run.converged:
-        results['molecular_orbitals'] = {}
-        results['molecular_orbitals']['energies'] = mean_field_run.mo_energy.tolist()
-        results['molecular_orbitals']['labels'] = structure.ao_labels()
-        results['molecular_orbitals']['occupations'] = mean_field_run.mo_occ.tolist()
+        results['mean_field']['molecular_orbitals'] = {}
+        results['mean_field']['molecular_orbitals']['energies'] = mean_field_run.mo_energy.tolist()
+        results['mean_field']['molecular_orbitals']['labels'] = structure.ao_labels()
+        results['mean_field']['molecular_orbitals']['occupations'] = mean_field_run.mo_occ.tolist()
     else:
         write_results_and_exit(results)
 
@@ -67,7 +68,8 @@ def main():
     optimizer_run = optimizer.kernel(convergence_parameters)
 
     results['timings']['optimizer'] = time.perf_counter() - optimizer_start
-    results['optimized_coordinates'] = optimizer_run.atom_coords().tolist()
+    results['optimizer'] = {}
+    results['optimizer']['optimized_coordinates'] = optimizer_run.atom_coords().tolist()
 
 
 

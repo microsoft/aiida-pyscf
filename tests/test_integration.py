@@ -29,9 +29,9 @@ def test_pyscf_base_mean_field(aiida_local_code_factory, generate_structure, dat
     # ``num_regression`` fixture to account for negligible float value differences. The same goes for the total energy.
     num_regression.check(
         {
-            'forces': numpy.array(parameters.pop('forces')).flatten(),
-            'total_energy': parameters.pop('total_energy'),
-            'mo_energies': parameters['molecular_orbitals'].pop('energies'),
+            'forces': numpy.array(parameters['mean_field'].pop('forces')).flatten(),
+            'total_energy': parameters['mean_field'].pop('total_energy'),
+            'mo_energies': parameters['mean_field']['molecular_orbitals'].pop('energies'),
         },
         default_tolerance={
             'atol': 1e-4,
@@ -73,9 +73,9 @@ def test_pyscf_base_geometry_optimization(
         {
             'cell': numpy.array(results['structure'].cell).flatten(),
             'positions': numpy.array([site.position for site in results['structure'].sites]).flatten(),
-            'forces': numpy.array(parameters.pop('forces')).flatten(),
-            'total_energy': parameters.pop('total_energy'),
-            'mo_energies': parameters['molecular_orbitals'].pop('energies'),
+            'forces': numpy.array(parameters['mean_field'].pop('forces')).flatten(),
+            'total_energy': parameters['mean_field'].pop('total_energy'),
+            'mo_energies': parameters['mean_field']['molecular_orbitals'].pop('energies'),
         },
         default_tolerance={
             'atol': 1e-4,
@@ -165,4 +165,4 @@ def test_failed_electronic_convergence(aiida_local_code_factory, generate_struct
     assert node.is_failed
     assert node.exit_status == PyscfCalculation.exit_codes.ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED.status
     assert 'parameters' in results
-    assert results['parameters'].get_dict()['is_converged'] is False
+    assert results['parameters'].get_dict()['mean_field']['is_converged'] is False

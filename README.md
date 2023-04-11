@@ -76,35 +76,37 @@ The main results are stored in the `parameters` output, which by default contain
 ```python
 print(results['parameters'].get_dict())
 {
-    'forces': [
-        [-6.4898366104394e-16, 3.0329042995656e-15, 2.2269765466236],
-        [1.122487932593e-14, 0.64803103141326, -1.1134882733107],
-        [-1.0575895664886e-14, -0.64803103141331, -1.1134882733108]
-    ],
-    'forces_units': 'eV/Å',
-    'molecular_orbitals': {
-        'labels': [
-            '0 O 1s',
-            '0 O 2s',
-            '0 O 2px',
-            '0 O 2py',
-            '0 O 2pz',
-            '1 H 1s',
-            '2 H 1s'
+    'mean_field': {
+        'forces': [
+            [-6.4898366104394e-16, 3.0329042995656e-15, 2.2269765466236],
+            [1.122487932593e-14, 0.64803103141326, -1.1134882733107],
+            [-1.0575895664886e-14, -0.64803103141331, -1.1134882733108]
         ],
-        'energies': [
-            -550.86280025028,
-            -34.375426862456,
-            -16.629598134599,
-            -12.323304634736,
-            -10.637428057751,
-            16.200273277782,
-            19.796075801491
-        ],
-        'occupations': [2.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0]
+        'forces_units': 'eV/Å',
+        'molecular_orbitals': {
+            'labels': [
+                '0 O 1s',
+                '0 O 2s',
+                '0 O 2px',
+                '0 O 2py',
+                '0 O 2pz',
+                '1 H 1s',
+                '2 H 1s'
+            ],
+            'energies': [
+                -550.86280025028,
+                -34.375426862456,
+                -16.629598134599,
+                -12.323304634736,
+                -10.637428057751,
+                16.200273277782,
+                19.796075801491
+            ],
+            'occupations': [2.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0]
+        },
+        'total_energy': -2039.8853743664,
+        'total_energy_units': 'eV',
     },
-    'total_energy': -2039.8853743664,
-    'total_energy_units': 'eV',
     'timings': {
         'total': 1.3238215579768, 'mean_field': 0.47364449803717
     },
@@ -165,11 +167,13 @@ The `parameters` output will contain the optimized structure coordinates:
 print(results['parameters'].get_dict())
 {
     ...
-    'optimized_coordinates': [
-        [3.6553814911922e-16, -4.4060505668964e-14, 0.2752230960058],
-        [8.5698519337032e-15, 1.4325248445029, -0.926413468005],
-        [-7.8373230766793e-15, -1.4325248445029, -0.92641346800501]
-    ]
+    'optimizer': {
+        'optimized_coordinates': [
+            [3.6553814911922e-16, -4.4060505668964e-14, 0.2752230960058],
+            [8.5698519337032e-15, 1.4325248445029, -0.926413468005],
+            [-7.8373230766793e-15, -1.4325248445029, -0.92641346800501]
+        ]
+    }
 }
 ```
 For convenience, the optimized structure is also returned in the form of a `StructureData` under the `structure` output label.
