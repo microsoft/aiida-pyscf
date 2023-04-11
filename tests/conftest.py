@@ -10,7 +10,7 @@ from aiida.common.folders import Folder
 from aiida.common.links import LinkType
 from aiida.engine.utils import instantiate_process
 from aiida.manage.manager import get_manager
-from aiida.orm import CalcJobNode, Dict, FolderData, StructureData
+from aiida.orm import CalcJobNode, Dict, FolderData, StructureData, TrajectoryData
 from aiida.plugins import ParserFactory, WorkflowFactory
 from ase.build import molecule
 from plumpy import ProcessState
@@ -138,6 +138,17 @@ def generate_structure():
         """Generate a ``StructureData`` instance."""
         atoms = molecule(formula)
         return StructureData(ase=atoms)
+
+    return factory
+
+
+@pytest.fixture
+def generate_trajectory(generate_structure):
+    """Return factory to generate a ``TrajectoryData`` instance."""
+
+    def factory(formula: str = 'H2O') -> TrajectoryData:
+        """Generate a ``TrajectoryData`` instance."""
+        return TrajectoryData(structurelist=[generate_structure(formula=formula)])
 
     return factory
 

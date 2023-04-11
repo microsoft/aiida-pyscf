@@ -65,6 +65,33 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
             return ProcessHandlerReport(True, self.exit_codes.ERROR_UNRECOVERABLE_FAILURE)
 
     @process_handler(
+        priority=500,
+        exit_codes=[
+            PyscfCalculation.exit_codes.ERROR_IONIC_CONVERGENCE_NOT_REACHED,  # type: ignore[union-attr]
+        ]
+    )
+    def handle_ionic_convergence_not_reached(self, node):
+        """Handle ``ERROR_IONIC_CONVERGENCE_NOT_REACHED`` error.
+
+        Simply restart the calculation using the ``checkpoint`` and ``structure`` outputs of the failed calculation as
+        starting point.
+        """
+        self.ctx.inputs.checkpoint = node.outputs.checkpoint
+
+        if 'structure' in node.outputs:
+            self.ctx.inputs.structure = node.outputs.structure
+        elif 'trajectory' in node.outputs:
+            structure = node.outputs.trajectory.get_step_structure(index=-1)
+            structure.pbc = self.ctx.inputs.structure.pbc
+            structure.store()
+            self.ctx.inputs.structure = structure
+        else:
+            self.logger.warning('no output `structure` or `trajectory`: restarting from input structure.')
+
+        self.report_error_handled(node, 'restarting from the last checkpoint and structure.')
+        return ProcessHandlerReport(True)
+
+    @process_handler(
         priority=410,
         exit_codes=[
             PyscfCalculation.exit_codes.ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED,  # type: ignore[union-attr]
