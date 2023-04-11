@@ -20,14 +20,20 @@ def test_default(generate_calc_job_node, generate_parser, data_regression):
 def test_relax(generate_calc_job_node, generate_parser, generate_structure, data_regression):
     """Test parsing the outputs of a job that optimizes the geometry."""
     inputs = {'structure': generate_structure('H2')}
-    node = generate_calc_job_node('pyscf.base', 'relax', inputs)
+    node, tmp_path = generate_calc_job_node('pyscf.base', 'relax', inputs, retrieve_temporary_list=['*_optim.xyz'])
     parser = generate_parser('pyscf.base')
-    results, calcfunction = parser.parse_from_node(node, store_provenance=False)
+    results, calcfunction = parser.parse_from_node(node, retrieved_temporary_folder=tmp_path, store_provenance=False)
 
     assert calcfunction.is_finished, calcfunction.exception
     assert calcfunction.is_finished_ok, calcfunction.exit_message
     assert 'structure' in results
-    data_regression.check({'structure': results['structure'].base.attributes.all})
+    data_regression.check({
+        'parameters': results['parameters'].get_dict(),
+        'structure': results['structure'].base.attributes.all,
+        'trajectory': results['trajectory'].base.attributes.all,
+        'energies': results['trajectory'].get_array('energies').flatten().tolist(),
+        'positions': results['trajectory'].get_array('positions').flatten().tolist(),
+    })
 
 
 def test_failed_out_of_walltime(generate_calc_job_node, generate_parser):
