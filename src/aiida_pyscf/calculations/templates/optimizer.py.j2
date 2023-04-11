@@ -11,4 +11,5 @@ optimizer = mean_field.Gradients().optimizer(solver='{{ optimizer.solver }}')
 optimizer_run = optimizer.kernel(convergence_parameters)
 
 results['timings']['optimizer'] = time.perf_counter() - optimizer_start
-results['optimized_coordinates'] = optimizer_run.atom_coords().tolist()
+results['optimizer'] = {}
+results['optimizer']['optimized_coordinates'] = optimizer_run.atom_coords().tolist()

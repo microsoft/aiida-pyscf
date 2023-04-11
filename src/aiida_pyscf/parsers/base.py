@@ -41,27 +41,29 @@ class PyscfParser(Parser):
         except FileNotFoundError:
             return self.handle_failure('ERROR_OUTPUT_RESULTS_MISSING')
 
-        if 'optimized_coordinates' in parsed_json:
+        results_mean_field = parsed_json.setdefault('mean_field', {})
+
+        if 'optimized_coordinates' in parsed_json.get('optimizer', {}):
             structure = self.node.inputs.structure.clone()
-            optimized_coordinates = parsed_json.pop('optimized_coordinates') * ureg.bohr
+            optimized_coordinates = parsed_json['optimizer'].pop('optimized_coordinates') * ureg.bohr
             structure.reset_sites_positions(optimized_coordinates.to(ureg.angstrom).magnitude.tolist())
             self.out('structure', structure)
 
-        if 'total_energy' in parsed_json:
-            energy = parsed_json['total_energy'] * ureg.hartree
-            parsed_json['total_energy'] = energy.to(ureg.electron_volt).magnitude
-            parsed_json['total_energy_units'] = 'eV'
+        if 'total_energy' in results_mean_field:
+            energy = results_mean_field['total_energy'] * ureg.hartree
+            results_mean_field['total_energy'] = energy.to(ureg.electron_volt).magnitude
+            results_mean_field['total_energy_units'] = 'eV'
 
-        if 'molecular_orbitals' in parsed_json:
-            labels = parsed_json['molecular_orbitals']['labels']
-            energies = parsed_json['molecular_orbitals']['energies'] * ureg.hartree
-            parsed_json['molecular_orbitals']['energies'] = energies.to(ureg.electron_volt).magnitude
-            parsed_json['molecular_orbitals']['labels'] = [label.strip() for label in labels]
+        if 'molecular_orbitals' in results_mean_field:
+            labels = results_mean_field['molecular_orbitals']['labels']
+            energies = results_mean_field['molecular_orbitals']['energies'] * ureg.hartree
+            results_mean_field['molecular_orbitals']['energies'] = energies.to(ureg.electron_volt).magnitude
+            results_mean_field['molecular_orbitals']['labels'] = [label.strip() for label in labels]
 
-        if 'forces' in parsed_json:
-            forces = parsed_json['forces'] * ureg.hartree / ureg.bohr
-            parsed_json['forces'] = forces.to(ureg.electron_volt / ureg.angstrom).magnitude.tolist()
-            parsed_json['forces_units'] = 'eV/Å'
+        if 'forces' in results_mean_field:
+            forces = results_mean_field['forces'] * ureg.hartree / ureg.bohr
+            results_mean_field['forces'] = forces.to(ureg.electron_volt / ureg.angstrom).magnitude.tolist()
+            results_mean_field['forces_units'] = 'eV/Å'
 
         if self.dirpath_temporary:
             for filepath_cubegen in self.dirpath_temporary.glob('*.cube'):
@@ -72,7 +74,7 @@ class PyscfParser(Parser):
 
         self.out('parameters', Dict(parsed_json))
 
-        if parsed_json['is_converged'] is False:
+        if results_mean_field['is_converged'] is False:
             return self.handle_failure('ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED', override_scheduler=True)
 
         return ExitCode(0)
