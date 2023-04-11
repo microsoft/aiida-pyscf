@@ -3,7 +3,6 @@
 
 
 def main():
-    import json
     import time
 
     results = {
@@ -12,6 +11,18 @@ def main():
 
     time_start = time.perf_counter()
 
+
+    # Section: Results
+    def write_results_and_exit(results):
+        import json
+        import sys
+
+        results['timings']['total'] = time.perf_counter() - time_start
+
+        with open('results.json', 'w') as handle:
+            json.dump(results, handle)
+
+        sys.exit(0)
 
     # Section: Structure definition
     from pyscf import gto
@@ -39,19 +50,19 @@ def main():
     results['timings']['mean_field'] = time.perf_counter() - mean_field_start
     results['total_energy'] = mean_field_run.e_tot
     results['forces'] = (- mean_field_run.nuc_grad_method().kernel()).tolist()
-    results['molecular_orbitals'] = {}
-    results['molecular_orbitals']['energies'] = mean_field_run.mo_energy.tolist()
-    results['molecular_orbitals']['labels'] = structure.ao_labels()
-    results['molecular_orbitals']['occupations'] = mean_field_run.mo_occ.tolist()
+
+    if mean_field_run.converged:
+        results['molecular_orbitals'] = {}
+        results['molecular_orbitals']['energies'] = mean_field_run.mo_energy.tolist()
+        results['molecular_orbitals']['labels'] = structure.ao_labels()
+        results['molecular_orbitals']['occupations'] = mean_field_run.mo_occ.tolist()
+    else:
+        write_results_and_exit(results)
 
 
 
 
-    # Section: Results
-    results['timings']['total'] = time.perf_counter() - time_start
-
-    with open('results.json', 'w') as handle:
-        json.dump(results, handle)
+    write_results_and_exit(results)
 
 
 if __name__ == '__main__':

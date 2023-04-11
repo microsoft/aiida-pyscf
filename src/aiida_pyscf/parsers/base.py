@@ -16,28 +16,30 @@ from aiida_pyscf.calculations.base import PyscfCalculation
 class PyscfParser(Parser):
     """Parser for a :class:`aiida_pyscf.calculations.base.PyscfCalculation` job."""
 
+    def __init__(self, *args, **kwargs):
+        """Construct a new instance."""
+        self.dirpath_temporary: pathlib.Path | None = None
+        super().__init__(*args, **kwargs)
+
     def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ,too-many-locals
         """Parse the contents of the output files stored in the ``retrieved`` output node.
 
         :returns: An exit code if the job failed.
         """
         ureg = UnitRegistry()
+        self.dirpath_temporary = pathlib.Path(retrieved_temporary_folder) if retrieved_temporary_folder else None
 
-        files_retrieved = self.retrieved.list_object_names()
-        dirpath_temporary = pathlib.Path(retrieved_temporary_folder) if retrieved_temporary_folder else None
+        try:
+            with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_STDOUT, 'r') as handle:
+                stdout = handle.read()  # pylint: disable=unused-variable
+        except FileNotFoundError:
+            return self.handle_failure('ERROR_OUTPUT_STDOUT_MISSING')
 
-        for filename, exit_code in (
-            (PyscfCalculation.FILENAME_STDOUT, PyscfCalculation.exit_codes.ERROR_OUTPUT_STDOUT_MISSING),
-            (PyscfCalculation.FILENAME_RESULTS, PyscfCalculation.exit_codes.ERROR_OUTPUT_RESULTS_MISSING),
-        ):
-            if filename not in files_retrieved:
-                # If an exit status has already been set by the scheduler, keep that by returning instead of overriding.
-                if self.node.exit_status is not None:
-                    return ExitCode(self.node.exit_status, self.node.exit_message)
-                return exit_code
-
-        with self.retrieved.open(PyscfCalculation.FILENAME_RESULTS, 'rb') as handle:
-            parsed_json = json.load(handle)
+        try:
+            with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_RESULTS, 'rb') as handle:
+                parsed_json = json.load(handle)
+        except FileNotFoundError:
+            return self.handle_failure('ERROR_OUTPUT_RESULTS_MISSING')
 
         if 'optimized_coordinates' in parsed_json:
             structure = self.node.inputs.structure.clone()
@@ -61,18 +63,42 @@ class PyscfParser(Parser):
             parsed_json['forces'] = forces.to(ureg.electron_volt / ureg.angstrom).magnitude.tolist()
             parsed_json['forces_units'] = 'eV/Å'
 
-        if dirpath_temporary:
-            for filepath_cubegen in dirpath_temporary.glob('*.cube'):
+        if self.dirpath_temporary:
+            for filepath_cubegen in self.dirpath_temporary.glob('*.cube'):
                 self.out(f'cubegen.{filepath_cubegen.stem}', SinglefileData(filepath_cubegen))
 
-            for filepath_fcidump in dirpath_temporary.glob('*.fcidump'):
+            for filepath_fcidump in self.dirpath_temporary.glob('*.fcidump'):
                 self.out(f'fcidump.{filepath_fcidump.stem}', SinglefileData(filepath_fcidump))
 
         self.out('parameters', Dict(parsed_json))
 
-        if not parsed_json['is_converged']:
-            filepath_temporary = pathlib.Path(retrieved_temporary_folder)  # type: ignore[arg-type]
-            self.out('checkpoint', SinglefileData(filepath_temporary / PyscfCalculation.FILENAME_CHECKPOINT))
-            return self.exit_codes.ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED
+        if parsed_json['is_converged'] is False:
+            return self.handle_failure('ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED', override_scheduler=True)
 
         return ExitCode(0)
+
+    def handle_failure(self, exit_code_label: str, override_scheduler: bool = False) -> ExitCode:
+        """Return the exit code corresponding to the given label unless the scheduler.
+
+        This method also takes care of attaching the checkfile as an output if it was retrieved.
+
+        :param override_scheduler: If set to ``True``, will return the given exit code even if one had already been set
+            by the scheduler plugin.
+        :returns: The exit code that should be returned by the caller.
+        """
+        self.attach_checkpoint_output()
+
+        # If ``override_scheduler`` is ``False`` and an exit status has already been set by the scheduler, keep that by
+        # returning it as is.
+        if not override_scheduler and self.node.exit_status is not None:
+            return ExitCode(self.node.exit_status, self.node.exit_message)
+
+        # Either the scheduler parser did not return an exit code or we should override it regardless.
+        return getattr(self.exit_codes, exit_code_label)
+
+    def attach_checkpoint_output(self) -> None:
+        """Attach the checkpoint file as an output if it was retrieved in the temporary folder."""
+        if self.dirpath_temporary is None:
+            return
+
+        self.out('checkpoint', SinglefileData(self.dirpath_temporary / PyscfCalculation.FILENAME_CHECKPOINT))

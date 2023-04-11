@@ -3,6 +3,7 @@
 from aiida import engine, orm
 import numpy
 
+from aiida_pyscf.calculations.base import PyscfCalculation
 from aiida_pyscf.workflows.base import PyscfBaseWorkChain
 
 
@@ -142,3 +143,26 @@ def test_pyscf_base_work_chain(aiida_local_code_factory, generate_structure):
     assert node.is_finished_ok
     assert [calcjob.exit_status for calcjob in sorted(node.called, key=lambda n: n.ctime)] == [410, 410, 0]
     assert 'parameters' in results
+
+
+def test_failed_electronic_convergence(aiida_local_code_factory, generate_structure):
+    """Test a ``PyscfCalculation`` job that fails to converge in the SCF cycle."""
+    code = aiida_local_code_factory('pyscf.base', 'python')
+    builder = code.get_builder()
+    builder.structure = generate_structure(formula='NO')
+    builder.parameters = orm.Dict({
+        'mean_field': {
+            'method': 'UKS',
+            'xc': 'LDA',
+        },
+        'structure': {
+            'symmetry': True,
+            'basis': '6-31G',
+            'spin': 1,
+        }
+    })
+    results, node = engine.run_get_node(builder)
+    assert node.is_failed
+    assert node.exit_status == PyscfCalculation.exit_codes.ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED.status
+    assert 'parameters' in results
+    assert results['parameters'].get_dict()['is_converged'] is False
