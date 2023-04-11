@@ -8,8 +8,17 @@ convergence_parameters['{{ key }}'] = {{ value|render_python }}
 
 optimizer_start = time.perf_counter()
 optimizer = mean_field.Gradients().optimizer(solver='{{ optimizer.solver }}')
-optimizer_run = optimizer.kernel(convergence_parameters)
+
+try:
+    optimizer_run = optimizer.kernel(convergence_parameters)
+except RuntimeError:
+    results['optimizer'] = {
+        'is_converged': False
+    }
+else:
+    results['optimizer'] = {
+        'is_converged': True,
+        'optimized_coordinates': optimizer_run.atom_coords().tolist(),
+    }
 
 results['timings']['optimizer'] = time.perf_counter() - optimizer_start
-results['optimizer'] = {}
-results['optimizer']['optimized_coordinates'] = optimizer_run.atom_coords().tolist()
