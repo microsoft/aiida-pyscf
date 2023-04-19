@@ -91,6 +91,31 @@ def test_handle_ionic_convergence_not_reached(generate_workchain_pyscf_base, gen
     assert process.ctx.inputs.structure == process.node.inputs.pyscf.structure
 
 
+def test_handle_scheduler_node_failure(generate_workchain_pyscf_base):
+    """Test ``PyscfBaseWorkChain.handle_scheduler_node_failure``."""
+    process = generate_workchain_pyscf_base(
+        exit_code=PyscfCalculation.exit_codes.ERROR_SCHEDULER_NODE_FAILURE,
+        outputs={'checkpoint': SinglefileData(io.StringIO('dummy checkpoint'))},
+    )
+    process.setup()
+
+    # If the failed node has a ``checkpoint`` output, it should restart from that.
+    result = process.handle_scheduler_node_failure(process.ctx.children[-1])
+    assert isinstance(result, ProcessHandlerReport)
+    assert result.do_break
+    assert process.ctx.inputs.checkpoint
+
+    process = generate_workchain_pyscf_base(exit_code=PyscfCalculation.exit_codes.ERROR_SCHEDULER_NODE_FAILURE)
+    process.setup()
+
+    # If the failed node has no ``checkpoint`` output, it should restart from the last checkpoint in the inputs which
+    # in this test case is not defined (e.g., the first calculation of the work chain).
+    result = process.handle_scheduler_node_failure(process.ctx.children[-1])
+    assert isinstance(result, ProcessHandlerReport)
+    assert result.do_break
+    assert 'checkpoint' not in process.ctx.inputs
+
+
 def test_handle_out_of_walltime(generate_workchain_pyscf_base):
     """Test ``PyscfBaseWorkChain.handle_out_of_walltime``."""
     process = generate_workchain_pyscf_base(
