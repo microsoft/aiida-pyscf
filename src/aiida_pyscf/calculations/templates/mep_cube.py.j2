@@ -1,0 +1,11 @@
+from pyscf.tools.cubegen import mep
+
+{% if optimizer %}
+hf = optimizer_run
+{% else %}
+hf = mean_field_run
+{% endif %}
+
+mep_cube_start = time.perf_counter()
+mep(structure,'{{ mep_cube.filename }}',hf.make_rdm1(),**{{ mep_cube.parameters or {} }})
+results['timings']['mep_cube'] = time.perf_counter() - mep_cube_start  

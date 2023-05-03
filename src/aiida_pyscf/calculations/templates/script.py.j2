@@ -26,6 +26,14 @@ def main():
     {% include 'pyscf/cubegen.py.j2' %}
     {% endif %}
 
+    {% if density_cube %}
+    {% include 'pyscf/density_cube.py.j2' %}
+    {% endif %}
+
+    {% if mep_cube %}
+    {% include 'pyscf/mep_cube.py.j2' %}
+    {% endif %}
+
     {% if fcidump %}
     {% include 'pyscf/fcidump.py.j2' %}
     {% endif %}

@@ -69,8 +69,14 @@ class PyscfParser(Parser):
             results_mean_field['forces_units'] = 'eV/Å'
 
         if self.dirpath_temporary:
-            for filepath_cubegen in self.dirpath_temporary.glob('*.cube'):
+            for filepath_cubegen in self.dirpath_temporary.glob('mo*.cube'):
                 self.out(f'cubegen.{filepath_cubegen.stem}', SinglefileData(filepath_cubegen))
+
+            for filepath_density in self.dirpath_temporary.glob(PyscfCalculation.FILENAME_DENSITY_CUBE):
+                self.out('density_cube', SinglefileData(filepath_density))
+
+            for filepath_mep in self.dirpath_temporary.glob(PyscfCalculation.FILENAME_MEP_CUBE):
+                self.out('mep_cube', SinglefileData(filepath_mep))
 
             for filepath_fcidump in self.dirpath_temporary.glob('*.fcidump'):
                 self.out(f'fcidump.{filepath_fcidump.stem}', SinglefileData(filepath_fcidump))

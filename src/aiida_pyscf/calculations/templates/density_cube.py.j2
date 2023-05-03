@@ -1,0 +1,11 @@
+from pyscf.tools.cubegen import density
+
+{% if optimizer %}
+hf = optimizer_run
+{% else %}
+hf = mean_field_run
+{% endif %}
+
+density_cube_start = time.perf_counter()
+density(structure,'{{density_cube.filename}}',hf.make_rdm1(),**{{ density_cube.parameters or {} }})
+results['timings']['density_cube'] = time.perf_counter() - density_cube_start  

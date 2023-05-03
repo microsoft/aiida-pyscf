@@ -27,6 +27,8 @@ class PyscfCalculation(CalcJob):
     FILENAME_RESULTS: str = 'results.json'
     FILENAME_CHECKPOINT: str = 'checkpoint.chk'
     FILENAME_RESTART: str = 'restart.chk'
+    FILENAME_DENSITY_CUBE: str = 'density.cube'
+    FILENAME_MEP_CUBE: str = 'mep.cube'
     FILEPATH_LOG_INI: pathlib.Path = pathlib.Path(__file__).parent / 'templates' / 'geometric_log.ini'
     MAIN_TEMPLATE: str = 'pyscf/script.py.j2'
 
@@ -88,6 +90,18 @@ class PyscfCalculation(CalcJob):
         )
         spec.output_namespace('cubegen', valid_type=SinglefileData, required=False, help='Computed cube files.')
         spec.output_namespace('fcidump', valid_type=SinglefileData, required=False, help='Computed fcidump files.')
+        spec.output(
+            'density_cube',
+            valid_type=SinglefileData,
+            required=False,
+            help='A cube file for the density if it is requested'
+        )
+        spec.output(
+            'mep_cube',
+            valid_type=SinglefileData,
+            required=False,
+            help='A cube file for the molecular electrostatic potential (mep) if it is requested'
+        )
 
         spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
         spec.exit_code(303, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
@@ -210,6 +224,12 @@ class PyscfCalculation(CalcJob):
         if 'checkpoint' in self.inputs:
             parameters['mean_field']['checkpoint'] = self.FILENAME_RESTART
 
+        if 'density_cube' in parameters:
+            parameters['density_cube']['filename'] = self.FILENAME_DENSITY_CUBE
+
+        if 'mep_cube' in parameters:
+            parameters['mep_cube']['filename'] = self.FILENAME_MEP_CUBE
+
         return parameters
 
     @classmethod
@@ -277,7 +297,13 @@ class PyscfCalculation(CalcJob):
             calcinfo.provenance_exclude_list.append(self.FILENAME_RESTART)
 
         if 'cubegen' in parameters:
-            calcinfo.retrieve_temporary_list.append('*.cube')
+            calcinfo.retrieve_temporary_list.append('mo*.cube')
+        
+        if 'density_cube' in parameters:
+            calcinfo.retrieve_temporary_list.append(self.FILENAME_DENSITY_CUBE)
+        
+        if 'mep_cube' in parameters:
+            calcinfo.retrieve_temporary_list.append(self.FILENAME_MEP_CUBE)
 
         if 'fcidump' in parameters:
             calcinfo.retrieve_temporary_list.append('*.fcidump')
