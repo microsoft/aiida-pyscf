@@ -207,9 +207,16 @@ print(results['fcidump']['active_space_0'].get_content())
   ...
 ```
 
-### Writing orbitals to CUBE files
+### Generating CUBE files
 
-To instruct the calculation to dump a representation of molecular orbitals to CUBE files, add the `cubegen` dictionary to the `parameters` input:
+The `pyscf.tools.cubegen` module provides functions to compute various properties of the system and write them as CUBE files.
+The `PyscfCalculation` plugin currently supports computing the following:
+
+* molecular orbitals
+* charge density
+* molecular electrostatic potential
+
+To instruct the calculation to dump a representation of any of these quantities to CUBE files, add the `cubegen` dictionary to the `parameters` input:
 ```python
 from ase.build import molecule
 from aiida.engine import run
@@ -227,15 +234,28 @@ builder.parameters = Dict({
                 'ny': 40,
                 'nz': 40,
             }
+        },
+        'density': {
+            'parameters': {
+                'resolution': 300,
+            }
+        },
+        'mep': {
+            'parameters': {
+                'resolution': 300,
+            }
         }
     }
 })
 results, node = run.get_node(builder)
 ```
-The `indices` key has to be specified and takes a list of integers, indicating the indices of the molecular orbitals that should be written to file.
+The `indices` key has to be specified for the `orbitals` subdictionary and takes a list of integers, indicating the indices of the molecular orbitals that should be written to file.
 Additional parameters can be provided in the `parameters` subdictionary (see the [PySCF documentation](https://pyscf.org/pyscf_api_docs/pyscf.tools.html?highlight=fcidump#module-pyscf.tools.cubegen) for details).
+The `parameters` subdictionaries for the `density` and `mep` dictionaries are optional.
+To compute the charge density and molecular electrostatic potential, the and empty dictionary for the `density` and `mep` keys, respectively, is sufficient.
 
-The generated CUBE files are attached as `SinglefileData` output nodes in the `cubegen.orbitals` namespace, where the label is determined by the corresponding molecular orbital index:
+The generated CUBE files are attached as `SinglefileData` output nodes in the `cubegen` namespace, with the `orbitals`, `density` and `mep` subnamespaces.
+For the `orbitals` subnamespace, the label is determined by the corresponding molecular orbital index:
 ```python
 print(results['cubegen']['orbitals']['mo_5'].get_content())
 Orbital value in real space (1/Bohr^3)

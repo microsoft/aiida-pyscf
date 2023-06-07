@@ -90,6 +90,15 @@ class PyscfCalculation(CalcJob):
         spec.output_namespace(
             'cubegen.orbitals', valid_type=SinglefileData, required=False, help='Molecular orbitals in `.cube` format.'
         )
+        spec.output(
+            'cubegen.density', valid_type=SinglefileData, required=False, help='The charge density in `.cube` format.'
+        )
+        spec.output(
+            'cubegen.mep',
+            valid_type=SinglefileData,
+            required=False,
+            help='The molecular electrostatic potential (MEP) in `.cube` format.'
+        )
 
         spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
         spec.exit_code(303, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
@@ -139,15 +148,16 @@ class PyscfCalculation(CalcJob):
                 return f'Invalid solver `{solver}` specified in `optimizer` parameters. Choose from: {valid_solvers}'
 
         if 'cubegen' in parameters:
-            indices = parameters['cubegen'].get('orbitals', {}).get('indices')
+            orbitals = parameters['cubegen'].get('orbitals')
+            indices = orbitals.get('indices') if orbitals is not None else None
 
-            if indices is None:
+            if orbitals is not None and indices is None:
                 return (
-                    'If the `cubegen` key is specified, the `orbitals.indices` key has to be defined with a list of '
-                    'indices.'
+                    'If the `cubegen.orbitals` key is specified, the `cubegen.orbitals.indices` key has to be defined '
+                    'with a list of indices.'
                 )
 
-            if not isinstance(indices, list) or any(not isinstance(e, int) for e in indices):
+            if indices is not None and (not isinstance(indices, list) or any(not isinstance(e, int) for e in indices)):
                 return f'The `cubegen.orbitals.indices` parameter should be a list of integers, but got: {indices}'
 
         if 'fcidump' in parameters:

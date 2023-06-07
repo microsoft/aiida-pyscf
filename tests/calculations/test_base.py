@@ -113,21 +113,17 @@ def test_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, file_reg
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
 
 
-def test_parameters_cubegen(generate_calc_job, generate_inputs_pyscf, file_regression):
+# yapf: disable
+@pytest.mark.parametrize('parameters', (
+    {'orbitals': {'indices': [5, 6], 'parameters': {'nx': 40, 'ny': 40, 'nz': 40, 'margin': 3.0,}}},
+    {'density': {}},
+    {'mep': {}},
+    {'orbitals': {'indices': [5, 6]}, 'density': {}, 'mep': {}},
+))
+# yapf: enable
+def test_parameters_cubegen(generate_calc_job, generate_inputs_pyscf, parameters, file_regression):
     """Test the ``cubegen`` key of the ``parameters`` input."""
-    parameters = {
-        'cubegen': {
-            'orbitals': {
-                'indices': [5, 6],
-                'parameters': {
-                    'nx': 40,
-                    'ny': 40,
-                    'nz': 40,
-                    'margin': 3.0,
-                }
-            }
-        },
-    }
+    parameters = {'cubegen': parameters}
     inputs = generate_inputs_pyscf(parameters=parameters)
     tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
 
@@ -184,7 +180,9 @@ def test_invalid_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, 
 
 @pytest.mark.parametrize(
     'parameters, expected', (
-        ({}, 'If the `cubegen` key is specified, the `orbitals.indices` key has to be defined with a list of indices.'),
+        ({
+            'orbitals': {}
+        }, r'If the `cubegen.orbitals` key is specified, the `cubegen.orbitals.indices` key has to .*'),
         ({
             'orbitals': {
                 'indices': 1
