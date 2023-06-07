@@ -25,7 +25,7 @@ class PyscfParser(Parser):
         self.dirpath_temporary: pathlib.Path | None = None
         super().__init__(*args, **kwargs)
 
-    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ,too-many-locals
+    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ,too-many-locals,too-many-branches
         """Parse the contents of the output files stored in the ``retrieved`` output node.
 
         :returns: An exit code if the job failed.
@@ -69,8 +69,14 @@ class PyscfParser(Parser):
             results_mean_field['forces_units'] = 'eV/Å'
 
         if self.dirpath_temporary:
-            for filepath_cubegen in self.dirpath_temporary.glob('*.cube'):
+            for filepath_cubegen in self.dirpath_temporary.glob('mo_*.cube'):
                 self.out(f'cubegen.orbitals.{filepath_cubegen.stem}', SinglefileData(filepath_cubegen))
+
+            for filepath_density in self.dirpath_temporary.glob('density.cube'):
+                self.out('cubegen.density', SinglefileData(filepath_density))
+
+            for filepath_mep in self.dirpath_temporary.glob('mep.cube'):
+                self.out('cubegen.mep', SinglefileData(filepath_mep))
 
             for filepath_fcidump in self.dirpath_temporary.glob('*.fcidump'):
                 self.out(f'fcidump.{filepath_fcidump.stem}', SinglefileData(filepath_fcidump))

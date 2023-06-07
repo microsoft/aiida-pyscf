@@ -64,10 +64,11 @@ def main():
 
     results['timings']['cubegen'] = {}
 
+
     time_start = time.perf_counter()
-    for index in [5, 6]:
-        cubegen.orbital(hf.mol, f'mo_{index}.cube', hf.mo_coeff[:,index], **{'nx': 40, 'ny': 40, 'nz': 40, 'margin': 3.0})
-    results['timings']['cubegen']['orbitals'] = time.perf_counter() - time_start
+    cubegen.density(hf.mol, 'density.cube', hf.make_rdm1(), **{})
+    results['timings']['cubegen']['density'] = time.perf_counter() - time_start
+
 
 
     write_results_and_exit(results)

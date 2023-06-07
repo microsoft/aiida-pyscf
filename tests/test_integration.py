@@ -97,7 +97,9 @@ def test_pyscf_base_cubegen(aiida_local_code_factory, generate_structure):
         'cubegen': {
             'orbitals': {
                 'indices': [5, 6],
-            }
+            },
+            'density': {},
+            'mep': {},
         }
     })
 
@@ -105,6 +107,8 @@ def test_pyscf_base_cubegen(aiida_local_code_factory, generate_structure):
     assert node.is_finished_ok
     assert 'cubegen' in results
     assert all(isinstance(node, orm.SinglefileData) for node in results['cubegen']['orbitals'].values())
+    assert isinstance(results['cubegen']['density'], orm.SinglefileData)
+    assert isinstance(results['cubegen']['mep'], orm.SinglefileData)
 
 
 def test_pyscf_base_fcidump(aiida_local_code_factory, generate_structure):

@@ -80,6 +80,8 @@ def test_cubegen(generate_calc_job_node, generate_parser, generate_structure):
     assert calcfunction.is_finished_ok, calcfunction.exit_message
     assert 'cubegen' in results
     assert all(isinstance(node, SinglefileData) for node in results['cubegen']['orbitals'].values())
+    assert isinstance(results['cubegen']['density'], SinglefileData)
+    assert isinstance(results['cubegen']['mep'], SinglefileData)
 
 
 def test_fcidump(generate_calc_job_node, generate_parser, generate_structure):

@@ -14,3 +14,15 @@ for index in {{ cubegen.orbitals.indices }}:
     cubegen.orbital(hf.mol, f'mo_{index}.cube', hf.mo_coeff[:,index], **{{ cubegen.orbitals.parameters or {} }})
 results['timings']['cubegen']['orbitals'] = time.perf_counter() - time_start
 {% endif %}
+
+{% if 'density' in cubegen %}
+time_start = time.perf_counter()
+cubegen.density(hf.mol, 'density.cube', hf.make_rdm1(), **{{ cubegen.density.parameters or {} }})
+results['timings']['cubegen']['density'] = time.perf_counter() - time_start
+{% endif %}
+
+{% if 'mep' in cubegen %}
+time_start = time.perf_counter()
+cubegen.mep(hf.mol, 'mep.cube', hf.make_rdm1(), **{{ cubegen.mep.parameters or {} }})
+results['timings']['cubegen']['mep'] = time.perf_counter() - time_start
+{% endif %}
