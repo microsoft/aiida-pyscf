@@ -79,7 +79,7 @@ def test_cubegen(generate_calc_job_node, generate_parser, generate_structure):
     assert calcfunction.is_finished, calcfunction.exception
     assert calcfunction.is_finished_ok, calcfunction.exit_message
     assert 'cubegen' in results
-    assert all(isinstance(node, SinglefileData) for node in results['cubegen'].values())
+    assert all(isinstance(node, SinglefileData) for node in results['cubegen']['orbitals'].values())
 
 
 def test_fcidump(generate_calc_job_node, generate_parser, generate_structure):

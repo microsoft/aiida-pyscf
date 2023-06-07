@@ -86,8 +86,10 @@ class PyscfCalculation(CalcJob):
             required=False,
             help='The checkpoint file in case the calculation did not converge. Can be used as an input for a restart.',
         )
-        spec.output_namespace('cubegen', valid_type=SinglefileData, required=False, help='Computed cube files.')
         spec.output_namespace('fcidump', valid_type=SinglefileData, required=False, help='Computed fcidump files.')
+        spec.output_namespace(
+            'cubegen.orbitals', valid_type=SinglefileData, required=False, help='Molecular orbitals in `.cube` format.'
+        )
 
         spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
         spec.exit_code(303, 'ERROR_OUTPUT_RESULTS_MISSING', message='The results JSON file was not retrieved.')
@@ -137,13 +139,16 @@ class PyscfCalculation(CalcJob):
                 return f'Invalid solver `{solver}` specified in `optimizer` parameters. Choose from: {valid_solvers}'
 
         if 'cubegen' in parameters:
-            indices = parameters['cubegen'].get('indices')
+            indices = parameters['cubegen'].get('orbitals', {}).get('indices')
 
             if indices is None:
-                return 'If the `cubegen` key is specified, the `indices` key has to be defined with a list of indices.'
+                return (
+                    'If the `cubegen` key is specified, the `orbitals.indices` key has to be defined with a list of '
+                    'indices.'
+                )
 
             if not isinstance(indices, list) or any(not isinstance(e, int) for e in indices):
-                return f'The `cubegen.indices` parameter should be a list of integers, but got: {indices}'
+                return f'The `cubegen.orbitals.indices` parameter should be a list of integers, but got: {indices}'
 
         if 'fcidump' in parameters:
             active_spaces = parameters['fcidump'].get('active_spaces')

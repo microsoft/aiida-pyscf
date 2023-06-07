@@ -70,7 +70,7 @@ class PyscfParser(Parser):
 
         if self.dirpath_temporary:
             for filepath_cubegen in self.dirpath_temporary.glob('*.cube'):
-                self.out(f'cubegen.{filepath_cubegen.stem}', SinglefileData(filepath_cubegen))
+                self.out(f'cubegen.orbitals.{filepath_cubegen.stem}', SinglefileData(filepath_cubegen))
 
             for filepath_fcidump in self.dirpath_temporary.glob('*.fcidump'):
                 self.out(f'fcidump.{filepath_fcidump.stem}', SinglefileData(filepath_fcidump))

@@ -62,9 +62,12 @@ def main():
 
     hf = mean_field_run
 
+    results['timings']['cubegen'] = {}
+
+    time_start = time.perf_counter()
     for index in [5, 6]:
-        filename = f'mo_{index}.cube'
-        cubegen.orbital(hf.mol, filename, hf.mo_coeff[:,index], **{'nx': 40, 'ny': 40, 'nz': 40, 'margin': 3.0})
+        cubegen.orbital(hf.mol, f'mo_{index}.cube', hf.mo_coeff[:,index], **{'nx': 40, 'ny': 40, 'nz': 40, 'margin': 3.0})
+    results['timings']['cubegen']['orbitals'] = time.perf_counter() - time_start
 
 
     write_results_and_exit(results)
