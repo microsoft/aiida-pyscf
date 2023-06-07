@@ -124,7 +124,8 @@ class PyscfParser(Parser):
             symbols=[site.kind_name for site in self.node.inputs.structure.sites],
             positions=numpy.array(positions),
         )
-        trajectory.set_array('energies', (numpy.array(energies) * ureg.hartree).to(ureg.electron_volt).magnitude)
+        energies = (numpy.array(energies) * ureg.hartree).to(ureg.electron_volt).magnitude  # type: ignore[attr-defined]
+        trajectory.set_array('energies', energies)
 
         return trajectory
 
