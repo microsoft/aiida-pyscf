@@ -192,9 +192,9 @@ The `active_spaces` and `occupations` keys are requires and each take a list of 
 For each element in the list, a FCIDUMP file is generated for the corresponding active spaces and the occupations of the orbitals.
 The shape of the `active_spaces` and `occupations` array has to be identical.
 
-The generated FCIDUMP files are attached as `SinglefileData` output nodes in the `fcidump` namespace, where the label is determined by the corresponding active space:
+The generated FCIDUMP files are attached as `SinglefileData` output nodes in the `fcidump` namespace, where the label is determined by the index of the corresponding active space in the list:
 ```python
-print(results['fcidump']['active_space_5_6_7_8'].get_content())
+print(results['fcidump']['active_space_0'].get_content())
  &FCI NORB=   4,NELEC= 4,MS2=0,
   ORBSYM=1,1,1,1,
   ISYM=1,
