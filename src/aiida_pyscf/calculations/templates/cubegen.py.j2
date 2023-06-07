@@ -6,6 +6,11 @@ hf = optimizer_run
 hf = mean_field_run
 {% endif %}
 
-for index in {{ cubegen.indices }}:
-    filename = f'mo_{index}.cube'
-    cubegen.orbital(hf.mol, filename, hf.mo_coeff[:,index], **{{ cubegen.parameters or {} }})
+results['timings']['cubegen'] = {}
+
+{% if cubegen.orbitals %}
+time_start = time.perf_counter()
+for index in {{ cubegen.orbitals.indices }}:
+    cubegen.orbital(hf.mol, f'mo_{index}.cube', hf.mo_coeff[:,index], **{{ cubegen.orbitals.parameters or {} }})
+results['timings']['cubegen']['orbitals'] = time.perf_counter() - time_start
+{% endif %}

@@ -220,11 +220,13 @@ builder.structure = StructureData(ase=molecule('N2'))
 builder.parameters = Dict({
     'mean_field': {'method': 'RHF'},
     'cubegen': {
-        'indices': [5, 6],
-        'parameters': {
-            'nx': 40,
-            'ny': 40,
-            'nz': 40,
+        'orbitals: {
+            'indices': [5, 6],
+            'parameters': {
+                'nx': 40,
+                'ny': 40,
+                'nz': 40,
+            }
         }
     }
 })
@@ -233,9 +235,9 @@ results, node = run.get_node(builder)
 The `indices` key has to be specified and takes a list of integers, indicating the indices of the molecular orbitals that should be written to file.
 Additional parameters can be provided in the `parameters` subdictionary (see the [PySCF documentation](https://pyscf.org/pyscf_api_docs/pyscf.tools.html?highlight=fcidump#module-pyscf.tools.cubegen) for details).
 
-The generated CUBE files are attached as `SinglefileData` output nodes in the `cubegen` namespace, where the label is determined by the corresponding molecular orbital index:
+The generated CUBE files are attached as `SinglefileData` output nodes in the `cubegen.orbitals` namespace, where the label is determined by the corresponding molecular orbital index:
 ```python
-print(results['cubegen']['mo_5'].get_content())
+print(results['cubegen']['orbitals']['mo_5'].get_content())
 Orbital value in real space (1/Bohr^3)
 PySCF Version: 2.1.1  Date: Sun Apr  2 15:59:19 2023
     2   -3.000000   -3.000000   -4.067676

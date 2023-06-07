@@ -95,14 +95,16 @@ def test_pyscf_base_cubegen(aiida_local_code_factory, generate_structure):
             'method': 'RHF'
         },
         'cubegen': {
-            'indices': [5, 6],
+            'orbitals': {
+                'indices': [5, 6],
+            }
         }
     })
 
     results, node = engine.run_get_node(builder)
     assert node.is_finished_ok
     assert 'cubegen' in results
-    assert all(isinstance(node, orm.SinglefileData) for node in results['cubegen'].values())
+    assert all(isinstance(node, orm.SinglefileData) for node in results['cubegen']['orbitals'].values())
 
 
 def test_pyscf_base_fcidump(aiida_local_code_factory, generate_structure):

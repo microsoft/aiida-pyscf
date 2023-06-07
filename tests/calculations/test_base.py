@@ -117,12 +117,14 @@ def test_parameters_cubegen(generate_calc_job, generate_inputs_pyscf, file_regre
     """Test the ``cubegen`` key of the ``parameters`` input."""
     parameters = {
         'cubegen': {
-            'indices': [5, 6],
-            'parameters': {
-                'nx': 40,
-                'ny': 40,
-                'nz': 40,
-                'margin': 3.0,
+            'orbitals': {
+                'indices': [5, 6],
+                'parameters': {
+                    'nx': 40,
+                    'ny': 40,
+                    'nz': 40,
+                    'margin': 3.0,
+                }
             }
         },
     }
@@ -182,10 +184,12 @@ def test_invalid_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, 
 
 @pytest.mark.parametrize(
     'parameters, expected', (
-        ({}, 'If the `cubegen` key is specified, the `indices` key has to be defined with a list of indices.'),
+        ({}, 'If the `cubegen` key is specified, the `orbitals.indices` key has to be defined with a list of indices.'),
         ({
-            'indices': 1
-        }, r'The `cubegen.indices` parameter should be a list of integers, but got:.*'),
+            'orbitals': {
+                'indices': 1
+            }
+        }, r'The `cubegen.orbitals.indices` parameter should be a list of integers, but got:.*'),
     )
 )
 def test_invalid_parameters_cubegen(generate_calc_job, generate_inputs_pyscf, parameters, expected):
