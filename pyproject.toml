@@ -6,7 +6,8 @@ build-backend = 'flit_core.buildapi'
 name = 'aiida-pyscf'
 dynamic = ['description', 'version']
 authors = [
-    {name = 'Sebastiaan P. Huber', email = 'mail@sphuber.net'}
+    {name = 'Sebastiaan P. Huber', email = 'mail@sphuber.net'},
+    {name = 'Adam Grofe', email = 'v-adamgrofe@microsoft.com'}
 ]
 readme = 'README.md'
 license = {file = 'LICENSE.txt'}
