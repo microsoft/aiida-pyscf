@@ -58,6 +58,11 @@ def main():
         write_results_and_exit(results)
 
 
+    from pyscf import lib
+    from pyscf.dft.dks import DKS
+    from pyscf.dft.gks import GKS
+    from pyscf.scf.dhf import DHF
+    from pyscf.scf.ghf import GHF
     from pyscf.tools import cubegen
 
     hf = mean_field_run
