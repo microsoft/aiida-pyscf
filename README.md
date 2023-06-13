@@ -271,6 +271,9 @@ PySCF Version: 2.1.1  Date: Sun Apr  2 15:59:19 2023
   ...
 ```
 
+> **Warning**
+> PySCF is known to fail when computing the MEP with DHF, DKS, GHF and GKS references.
+
 ### Restarting unconverged calculations
 
 The plugin will automatically instruct PySCF to write a checkpoint file.

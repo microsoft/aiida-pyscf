@@ -58,6 +58,11 @@ def main():
         write_results_and_exit(results)
 
 
+    from pyscf import lib
+    from pyscf.dft.dks import DKS
+    from pyscf.dft.gks import GKS
+    from pyscf.scf.dhf import DHF
+    from pyscf.scf.ghf import GHF
     from pyscf.tools import cubegen
 
     hf = mean_field_run
@@ -74,7 +79,54 @@ def main():
     results['timings']['cubegen']['density'] = time.perf_counter() - time_start
 
     time_start = time.perf_counter()
-    cubegen.mep(hf.mol, 'mep.cube', hf.make_rdm1(), **{})
+
+    def mep_symmetric(
+        mol, outfile, dm, nx=80, ny=80, nz=80, resolution=cubegen.RESOLUTION, margin=cubegen.BOX_MARGIN, memsize_gb=10
+    ):
+        """Compute the molecular electronic potential.
+
+        The :meth:`pyscf.tools.cubegen.mep` implementation makes no assumptions about the symmetry of the 1e integrals. This
+        makes it generally applicable but also less efficient than it could be in symmetric cases. The implementation below
+        assumes the 1e integrals are symmetric, allowing it to make certain shortcuts and provide a more performant solution.
+        """
+        import numpy as np
+        cc = cubegen.Cube(mol, nx, ny, nz, resolution, margin)
+        coords = cc.get_coords()
+
+        # Nuclear potential at given points
+        Vnuc = 0
+        for i in range(mol.natm):
+            r = mol.atom_coord(i)
+            Z = mol.atom_charge(i)
+            rp = r - coords
+            Vnuc += Z / np.einsum('xi,xi->x', rp, rp) ** 0.5
+
+        split_size = int(memsize_gb * 1e9 / 8 / dm.size)
+        print(f'Memory: {memsize_gb} GB, split size: {split_size} points')
+
+        # Potential of electron density
+        Vele = np.empty_like(Vnuc)
+        for p0, p1 in lib.prange(0, Vele.size, split_size):
+            ints = mol.intor('int1e_grids', grids=coords[p0:p1])
+            # Note1: np.tensordot is equivalent to np.einsum('pij,ij->p', ints, dm).
+            #   However, it is parallelized (when BLAS is available) so much faster.
+            # Note2: `ints` is a column-major matrix, it'll prevent tensordot from being parallelized.
+            #   But fortuantely, `ints` is a symmetric matrix, so we can transpose it to use parallelized tensordot
+            #   and get the same results.
+            Vele[p0:p1] = np.tensordot(ints, dm, axes=((2, 1), (0, 1)))
+
+        MEP = Vnuc - Vele  # MEP at each point
+        MEP = MEP.reshape(cc.nx, cc.ny, cc.nz)
+
+        # Write the potential
+        cc.write(MEP, outfile, 'Molecular electrostatic potential in real space')
+        return MEP
+
+    # Use the faster ``mep_symmetric`` implementation unless the reference is DHF, DKS, GHF, GKS where it is not guaranteed
+    # that the 1e integrals are symmetric.
+    mep = mep_symmetric if not isinstance(hf, (DHF, DKS, GHF, GKS)) else cubegen.mep
+    mep(hf.mol, 'mep.cube', hf.make_rdm1(), **{})
+
     results['timings']['cubegen']['mep'] = time.perf_counter() - time_start
 
 
