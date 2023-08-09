@@ -22,6 +22,10 @@ def main():
     {% include 'pyscf/optimizer.py.j2' %}
     {% endif %}
 
+    {% if hessian is defined %}
+    {% include 'pyscf/hessian.py.j2' %}
+    {% endif %}
+
     {% if cubegen %}
     {% include 'pyscf/cubegen.py.j2' %}
     {% endif %}

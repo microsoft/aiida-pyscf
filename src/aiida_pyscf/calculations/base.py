@@ -10,7 +10,7 @@ import typing as t
 from aiida.common.datastructures import CalcInfo, CodeInfo
 from aiida.common.folders import Folder
 from aiida.engine import CalcJob, CalcJobProcessSpec
-from aiida.orm import Dict, SinglefileData, StructureData, TrajectoryData
+from aiida.orm import ArrayData, Dict, SinglefileData, StructureData, TrajectoryData
 from ase.io.xyz import write_xyz
 from jinja2 import Environment, PackageLoader, PrefixLoader
 import numpy as np
@@ -98,6 +98,12 @@ class PyscfCalculation(CalcJob):
             valid_type=SinglefileData,
             required=False,
             help='The molecular electrostatic potential (MEP) in `.cube` format.'
+        )
+        spec.output(
+            'hessian',
+            valid_type=ArrayData,
+            required=False,
+            help='The computed Hessian.',
         )
 
         spec.exit_code(302, 'ERROR_OUTPUT_STDOUT_MISSING', message='The stdout output file was not retrieved.')
@@ -290,6 +296,9 @@ class PyscfCalculation(CalcJob):
             with self.inputs.checkpoint.open(mode='rb') as handle:
                 folder.create_file_from_filelike(handle, self.FILENAME_RESTART)
             calcinfo.provenance_exclude_list.append(self.FILENAME_RESTART)
+
+        if 'hessian' in parameters:
+            calcinfo.retrieve_temporary_list.append('hessian.npy')
 
         if 'cubegen' in parameters:
             calcinfo.retrieve_temporary_list.append('*.cube')

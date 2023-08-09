@@ -6,7 +6,7 @@ import json
 import pathlib
 
 from aiida.engine import ExitCode
-from aiida.orm import Dict, SinglefileData, TrajectoryData
+from aiida.orm import ArrayData, Dict, SinglefileData, TrajectoryData
 from aiida.parsers.parser import Parser
 from ase.io.extxyz import read_extxyz
 import numpy
@@ -80,6 +80,13 @@ class PyscfParser(Parser):
 
             for filepath_fcidump in self.dirpath_temporary.glob('*.fcidump'):
                 self.out(f'fcidump.{filepath_fcidump.stem}', SinglefileData(filepath_fcidump))
+
+            for filepath_hessian in self.dirpath_temporary.glob('hessian.npy'):
+                with filepath_hessian.open('rb') as handle:
+                    hessian = numpy.load(handle)
+                    array = ArrayData()
+                    array.set_array('hessian', hessian)
+                    self.out('hessian', array)
 
             filepath_trajectory = list(self.dirpath_temporary.glob('*_optim.xyz'))
             if filepath_trajectory:
