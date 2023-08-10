@@ -88,6 +88,9 @@ class PyscfParser(Parser):
                     array.set_array('hessian', hessian)
                     self.out('hessian', array)
 
+            for filepath_checkpoint in self.dirpath_temporary.glob(PyscfCalculation.FILENAME_CHECKPOINT):
+                self.out('checkpoint', SinglefileData(filepath_checkpoint))
+
             filepath_trajectory = list(self.dirpath_temporary.glob('*_optim.xyz'))
             if filepath_trajectory:
                 # There should be only one file that matches the pattern in the glob.
@@ -151,8 +154,6 @@ class PyscfParser(Parser):
             by the scheduler plugin.
         :returns: The exit code that should be returned by the caller.
         """
-        self.attach_checkpoint_output()
-
         # If ``override_scheduler`` is ``False`` and an exit status has already been set by the scheduler, keep that by
         # returning it as is.
         if not override_scheduler and self.node.exit_status is not None:
@@ -160,10 +161,3 @@ class PyscfParser(Parser):
 
         # Either the scheduler parser did not return an exit code or we should override it regardless.
         return getattr(self.exit_codes, exit_code_label)
-
-    def attach_checkpoint_output(self) -> None:
-        """Attach the checkpoint file as an output if it was retrieved in the temporary folder."""
-        if self.dirpath_temporary is None:
-            return
-
-        self.out('checkpoint', SinglefileData(self.dirpath_temporary / PyscfCalculation.FILENAME_CHECKPOINT))
