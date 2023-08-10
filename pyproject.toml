@@ -28,6 +28,8 @@ keywords = ['aiida', 'workflows', 'pyscf']
 requires-python = '>=3.8'
 dependencies = [
     'aiida-core[atomic_tools]~=2.3',
+    'aiida-shell>=0.5.3',
+    'dill',
     'numpy',
     'pint',
     'pyscf[geomopt]~=2.2',
@@ -96,6 +98,7 @@ check_untyped_defs = true
 [[tool.mypy.overrides]]
 module = [
     'ase.*',
+    'dill.*',
     'pint.*',
     'plumpy.*',
     'ruamel.*',

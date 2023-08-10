@@ -14,6 +14,7 @@ def main():
 
     # Section: Results
     def write_results_and_exit(results):
+        import dill
         import json
         import sys
 
@@ -21,6 +22,11 @@ def main():
 
         with open('results.json', 'w') as handle:
             json.dump(results, handle)
+
+        with open('model.pickle', 'wb') as handle:
+            # Need to unset the ``_chkfile`` attribute as it contains an open file handle which cannot be unpickled.
+            mean_field_run._chkfile = None
+            dill.dump(mean_field_run, handle)
 
         sys.exit(0)
 

@@ -11,6 +11,7 @@ from aiida.common.datastructures import CalcInfo, CodeInfo
 from aiida.common.folders import Folder
 from aiida.engine import CalcJob, CalcJobProcessSpec
 from aiida.orm import ArrayData, Dict, SinglefileData, StructureData, TrajectoryData
+from aiida_shell.data import PickledData
 from ase.io.xyz import write_xyz
 from jinja2 import Environment, PackageLoader, PrefixLoader
 import numpy as np
@@ -25,6 +26,7 @@ class PyscfCalculation(CalcJob):
     FILENAME_SCRIPT: str = 'script.py'
     FILENAME_STDOUT: str = 'aiida.out'
     FILENAME_RESULTS: str = 'results.json'
+    FILENAME_MODEL: str = 'model.pickle'
     FILENAME_CHECKPOINT: str = 'checkpoint.chk'
     FILENAME_RESTART: str = 'restart.chk'
     FILEPATH_LOG_INI: pathlib.Path = pathlib.Path(__file__).parent / 'templates' / 'geometric_log.ini'
@@ -85,6 +87,12 @@ class PyscfCalculation(CalcJob):
             valid_type=SinglefileData,
             required=False,
             help='The checkpoint file in case the calculation did not converge. Can be used as an input for a restart.',
+        )
+        spec.output(
+            'model',
+            valid_type=PickledData,
+            required=False,
+            help='The model in serialized form. Can be deserialized and used without having to run the kernel again.',
         )
         spec.output_namespace('fcidump', valid_type=SinglefileData, required=False, help='Computed fcidump files.')
         spec.output_namespace(
@@ -222,6 +230,7 @@ class PyscfCalculation(CalcJob):
         parameters.setdefault('structure', {})['xyz'] = self.prepare_structure_xyz()
         parameters.setdefault('mean_field', {})
         parameters.setdefault('results', {})['filename_output'] = self.FILENAME_RESULTS
+        parameters.setdefault('results', {})['filename_model'] = self.FILENAME_MODEL
 
         if 'optimizer' in parameters:
             parameters['optimizer'].setdefault('convergence_parameters', {})['logIni'] = 'log.ini'
@@ -289,6 +298,7 @@ class PyscfCalculation(CalcJob):
         calcinfo.retrieve_temporary_list = [self.FILENAME_CHECKPOINT]
         calcinfo.retrieve_list = [
             self.FILENAME_RESULTS,
+            self.FILENAME_MODEL,
             self.FILENAME_STDOUT,
         ]
 

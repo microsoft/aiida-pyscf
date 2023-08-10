@@ -2,6 +2,8 @@
 """Tests for the :mod:`aiida_pyscf.parsers.base` module."""
 # pylint: disable=redefined-outer-name
 from aiida.orm import SinglefileData
+from aiida_shell.data import PickledData
+from pyscf.scf.hf import RHF
 
 from aiida_pyscf.calculations.base import PyscfCalculation
 
@@ -95,3 +97,37 @@ def test_fcidump(generate_calc_job_node, generate_parser, generate_structure):
     assert calcfunction.is_finished_ok, calcfunction.exit_message
     assert 'fcidump' in results
     assert all(isinstance(node, SinglefileData) for node in results['fcidump'].values())
+
+
+def test_model_valid(generate_calc_job_node, generate_parser, generate_structure):
+    """Test (de)serialization of model."""
+    inputs = {'structure': generate_structure('N2')}
+    node, tmp_path = generate_calc_job_node(
+        'pyscf.base', 'model_valid', inputs, retrieve_temporary_list=[PyscfCalculation.FILENAME_MODEL]
+    )
+    parser = generate_parser('pyscf.base')
+    results, calcfunction = parser.parse_from_node(node, retrieved_temporary_folder=tmp_path, store_provenance=False)
+
+    assert calcfunction.is_finished, calcfunction.exception
+    assert calcfunction.is_finished_ok, calcfunction.exit_message
+    assert 'model' in results
+    assert isinstance(results['model'], PickledData)
+    assert isinstance(results['model'].load(), RHF)
+
+
+def test_model_invalid(generate_calc_job_node, generate_parser, generate_structure, caplog):
+    """Test case for invalid serialized model.
+
+    In this case, the parser should not except but log a warning.
+    """
+    inputs = {'structure': generate_structure('N2')}
+    node, tmp_path = generate_calc_job_node(
+        'pyscf.base', 'model_invalid', inputs, retrieve_temporary_list=[PyscfCalculation.FILENAME_MODEL]
+    )
+    parser = generate_parser('pyscf.base')
+    results, calcfunction = parser.parse_from_node(node, retrieved_temporary_folder=tmp_path, store_provenance=False)
+
+    assert calcfunction.is_finished, calcfunction.exception
+    assert calcfunction.is_finished_ok, calcfunction.exit_message
+    assert f'The pickled model file `{PyscfCalculation.FILENAME_MODEL}` could not be unpickled.' in caplog.text
+    assert 'model' not in results

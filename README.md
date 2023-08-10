@@ -306,6 +306,28 @@ submit(builder)
 ```
 The plugin will write the checkpoint file of the failed calculation to the working directory such that PySCF can start of from there.
 
+### Post-processing
+
+The `PyscfCalculation` plugin does not support all PySCF functionality; it aims to support most functionality that is computationally intensive, as in this case it is important to be able to offload these calculations as a calcjob on a remote compute resource.
+Most post-processing utilities are computationally inexpensive, and since the API is in Python, they can be called directly in AiiDA workflows as `calcfunction`s.
+Many PySCF utilities require the _model_ of the system as an argument, where model is the main object used in PySCF, i.e. the object assigned to the `mean_field` variable in the following:
+```python
+from pyscf import scf
+mean_field = scf.RHF(..)
+mean_field.kernel()
+```
+The `kernel` method is often computationally expensive, but its results (stored on the model object) are lost when the `PyscfCalculation` finishes as the Python interpreter of the calcjob shuts down and so the `mean_field` object no longer exists.
+This would force post-processing code to reconstruct the model from scratch and rerun the expensive kernel.
+Therefore, the `PyscfCalculation` serializes the PySCF model that was computed and stores it as a `PickledData` output node with the link label `model` in the provenance graph.
+This allows recreating the model in another Python interpreter and have it ready to be used for post-processing:
+```python
+from pyscf.hessian import thermo
+node = load_node()  # Load the completed `PyscfCalculation`
+mean_field = node.outputs.model.load()  # Reconstruct the model by calling the `load()` method
+hessian = mean_field.Hessian().kernel()
+freq_info = thermo.harmonic_analysis(mean_field.mol, hessian)
+```
+
 
 ### Automatic error recovery
 

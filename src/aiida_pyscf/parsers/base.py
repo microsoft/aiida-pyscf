@@ -8,7 +8,9 @@ import pathlib
 from aiida.engine import ExitCode
 from aiida.orm import ArrayData, Dict, SinglefileData, TrajectoryData
 from aiida.parsers.parser import Parser
+from aiida_shell.data import PickledData
 from ase.io.extxyz import read_extxyz
+import dill
 import numpy
 from pint import UnitRegistry
 
@@ -25,7 +27,7 @@ class PyscfParser(Parser):
         self.dirpath_temporary: pathlib.Path | None = None
         super().__init__(*args, **kwargs)
 
-    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ,too-many-locals,too-many-branches
+    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ,too-many-locals,too-many-branches,too-many-statements
         """Parse the contents of the output files stored in the ``retrieved`` output node.
 
         :returns: An exit code if the job failed.
@@ -43,6 +45,16 @@ class PyscfParser(Parser):
                 parsed_json = json.load(handle)
         except FileNotFoundError:
             return self.handle_failure('ERROR_OUTPUT_RESULTS_MISSING')
+
+        try:
+            with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_MODEL, 'rb') as handle:
+                model = dill.load(handle)
+        except FileNotFoundError:
+            self.logger.warning(f'The pickled model file `{PyscfCalculation.FILENAME_MODEL}` could not be read.')
+        except dill.UnpicklingError:
+            self.logger.warning(f'The pickled model file `{PyscfCalculation.FILENAME_MODEL}` could not be unpickled.')
+        else:
+            self.out('model', PickledData(model))
 
         results_mean_field = parsed_json.setdefault('mean_field', {})
 
