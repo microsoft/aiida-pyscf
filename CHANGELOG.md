@@ -1,5 +1,12 @@
 # Change log
 
+## `v0.4.1` - 2023-08-16
+
+### Features
+- `PyscfCalculation`: Store serialized model as output [[a072ea6]](https://github.com/microsoft/aiida-pyscf/commit/a072ea6171b2204f94af8a6772a57fced0a0cef5)
+- `PyscfCalculation`: Add support for computing the Hessian [[05cefef]](https://github.com/microsoft/aiida-pyscf/commit/05cefefe5bac8ce59b59747c47f6e99d8f6abd37)
+
+
 ## `v0.4.0` - 2023-06-13
 
 ### Features
