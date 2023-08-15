@@ -1,0 +1,10 @@
+# Section: Hessian
+import numpy
+from pyscf import hessian
+hessian_start = time.perf_counter()
+hessian = mean_field_run.Hessian().kernel()
+
+with open('hessian.npy', 'wb') as handle:
+    numpy.save(handle, hessian)
+
+results['timings']['hessian'] = time.perf_counter() - hessian_start

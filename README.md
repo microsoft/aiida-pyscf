@@ -169,6 +169,25 @@ The total energies can be retrieved as follows:
 results['trajectory'].get_array('energies')
 ```
 
+### Computing the Hessian
+
+In order to compute the Hessian, specify an empty dictionary for the `hessian` key in the `parameters` input:
+```python
+from ase.build import molecule
+from aiida.engine import run
+from aiida.orm import Dict, StructureData, load_code
+
+builder = load_code('pyscf').get_builder()
+builder.structure = StructureData(ase=molecule('H2O'))
+builder.parameters = Dict({
+    'mean_field': {'method': 'RHF'},
+    'hessian': {}
+})
+results, node = run.get_node(builder)
+```
+The computed Hessian will be attached as an `ArrayData` node with the link label `hessian`.
+Use `node.outputs.hessian.get_array('hessian')` to retrieve the computed Hessian as a numpy array for further processing.
+
 ### Writing Hamiltonian to FCIDUMP files
 
 To instruct the calculation to dump a representation of the Hamiltonian to FCIDUMP files, add the `fcidump` dictionary to the `parameters` input:
