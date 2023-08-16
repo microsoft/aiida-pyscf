@@ -45,6 +45,7 @@ def test_default(generate_calc_job, generate_inputs_pyscf, file_regression):
 
     assert sorted(calc_info.retrieve_list) == sorted([
         PyscfCalculation.FILENAME_RESULTS,
+        PyscfCalculation.FILENAME_MODEL,
         PyscfCalculation.FILENAME_STDOUT,
     ])
 
