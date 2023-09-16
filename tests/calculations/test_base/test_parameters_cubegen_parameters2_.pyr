@@ -26,6 +26,8 @@ def main():
         with open('model.pickle', 'wb') as handle:
             # Need to unset the ``_chkfile`` attribute as it contains an open file handle which cannot be unpickled.
             mean_field_run._chkfile = None
+            # Need to unset the ``opt`` attribute as it is ctypes objects containing pointers cannot be pickled.
+            mean_field_run.opt = None
             dill.dump(mean_field_run, handle)
 
         sys.exit(0)
