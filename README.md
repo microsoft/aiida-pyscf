@@ -16,6 +16,7 @@ An [AiiDA](https://www.aiida.net) plugin for the [Python-based Simulations of Ch
     * [Writing orbitals to CUBE files](#writing-orbitals-to-cube-files)
     * [Restarting unconverged calculations](#restarting-unconverged-calculations)
     * [Automatic error recovery](#automatic-error-recovery)
+    * [Pickled model](#pickled-model)
 
 ## Installation
 
@@ -369,6 +370,34 @@ The following error modes are currently handled by the `PyscfBaseWorkChain`:
 * `140`: Node failure: The calculation will be restarted from the last checkpoint
 * `410`: Electronic convergence not achieved: The calculation will be restarted from the last checkpoint
 * `500`: Ionic convergence not achieved: The geometry optmizization did not converge, calculation will be restarted from the last checkpoint and structure
+
+
+### Pickled model
+
+The main objective of a `PyscfCalculation` is to solve the mean-field problem for a given structure.
+The results of this, often computationally expensive, step are stored in the `mean_field_run` variable in the main script:
+```python
+mean_field = scf.RHF(structure)
+density_matrix = mean_field.from_chk('restart.chk')
+mean_field_run = mean_field.run(density_matrix)
+```
+The `mean_field_run` object can be used for a number of further post-processing operations implemented in PySCF.
+To keep the `PyscfCalculation` interface simple, not all of this functionality is supported.
+However, as soon as the calculation job finishes, the `mean_field_run` variable is lost and can no longer be accessed to be used for further processing.
+
+As a workaround, the `PyscfCalculation` will ["pickle"](https://docs.python.org/3/library/pickle.html) the `mean_field_run` object and attach it as the `model` output to the calculation.
+The `model` output node can be "unpickled" to restore the original `mean_field_run` object such that it can be used for further processing:
+```python
+from aiida.engine import run
+inputs = {}
+results, node = run.get_node(PyscfCalculation, **inputs)
+mean_field = node.outputs.model.load()
+print(mean_field.e_tot)
+```
+
+> **Warning**
+> For certain cases, the calculation may fail to pickle the model and will except.
+> In this case, one can set the `pickle_model` input to the `PyscfCalculation` to `False`.
 
 
 ## Contributing

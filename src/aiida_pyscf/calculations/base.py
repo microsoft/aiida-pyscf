@@ -231,6 +231,7 @@ class PyscfCalculation(CalcJob):
         parameters.setdefault('mean_field', {})
         parameters.setdefault('results', {})['filename_output'] = self.FILENAME_RESULTS
         parameters.setdefault('results', {})['filename_model'] = self.FILENAME_MODEL
+        parameters.setdefault('results', {}).setdefault('pickle_model', True)
 
         if 'optimizer' in parameters:
             parameters['optimizer'].setdefault('convergence_parameters', {})['logIni'] = 'log.ini'
