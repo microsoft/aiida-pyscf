@@ -34,6 +34,11 @@ class PyscfParser(Parser):
         """
         self.dirpath_temporary = pathlib.Path(retrieved_temporary_folder) if retrieved_temporary_folder else None
 
+        if 'parameters' in self.node.inputs:
+            parameters = self.node.inputs.parameters.get_dict()
+        else:
+            parameters = {}
+
         try:
             with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_STDOUT, 'r') as handle:
                 stdout = handle.read()  # pylint: disable=unused-variable
@@ -50,7 +55,8 @@ class PyscfParser(Parser):
             with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_MODEL, 'rb') as handle:
                 model = dill.load(handle)
         except FileNotFoundError:
-            self.logger.warning(f'The pickled model file `{PyscfCalculation.FILENAME_MODEL}` could not be read.')
+            if parameters.get('results', {}).get('pickle_model', True):
+                self.logger.warning(f'The pickled model file `{PyscfCalculation.FILENAME_MODEL}` could not be read.')
         except dill.UnpicklingError:
             self.logger.warning(f'The pickled model file `{PyscfCalculation.FILENAME_MODEL}` could not be unpickled.')
         else:

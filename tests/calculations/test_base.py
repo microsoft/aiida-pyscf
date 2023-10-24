@@ -159,6 +159,15 @@ def test_parameters_hessian(generate_calc_job, generate_inputs_pyscf, file_regre
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
 
 
+def test_parameters_pickle_model(generate_calc_job, generate_inputs_pyscf, file_regression):
+    """Test the ``results.pickle_model`` parameter."""
+    inputs = generate_inputs_pyscf(parameters={'results': {'pickle_model': False}})
+    tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
+    file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
+
+
 def test_invalid_parameters_mean_field_method(generate_calc_job, generate_inputs_pyscf):
     """Test validation of ``parameters.mean_field.method``."""
     parameters = {'mean_field': {'method': 'invalid'}}
