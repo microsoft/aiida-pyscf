@@ -32,7 +32,7 @@ dependencies = [
     'dill',
     'numpy',
     'pint',
-    'pyscf[geomopt]~=2.2',
+    'pyscf[geomopt]~=2.2,<2.4',
 ]
 
 [project.urls]
