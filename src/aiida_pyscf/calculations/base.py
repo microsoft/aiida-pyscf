@@ -2,6 +2,7 @@
 """``CalcJob`` plugin for PySCF."""
 from __future__ import annotations
 
+import copy
 import io
 import numbers
 import pathlib
@@ -128,14 +129,15 @@ class PyscfCalculation(CalcJob):
         )
 
     @classmethod
-    def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements,too-many-branches
+    def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements,too-many-branches,too-many-locals
         """Validate the parameters input."""
         if not value:
             return None
 
-        parameters = value.get_dict()
+        parameters = copy.deepcopy(value.get_dict())
 
-        mean_field_method = parameters.get('mean_field', {}).get('method')
+        mean_field = parameters.pop('mean_field', {})
+        mean_field_method = mean_field.pop('method', None)
         valid_methods = ['RKS', 'RHF', 'DKS', 'DHF', 'GKS', 'GHF', 'HF', 'KS', 'ROHF', 'ROKS', 'UKS', 'UHF']
         options = ' '.join(valid_methods)
 
@@ -145,15 +147,15 @@ class PyscfCalculation(CalcJob):
         if mean_field_method not in valid_methods:
             return f'Specified mean field method {mean_field_method} is not supported, choose from: {options}'
 
-        if 'chkfile' in parameters.get('mean_field', {}):
+        if 'chkfile' in mean_field:
             return (
                 'The `chkfile` cannot be specified in the `mean_field` parameters. It is set automatically by the '
                 'plugin if the `checkpoint` input is provided.'
             )
 
-        if 'optimizer' in parameters:
+        if (optimizer := parameters.pop('optimizer', None)) is not None:
             valid_solvers = ('geometric', 'berny')
-            solver = parameters['optimizer'].get('solver')
+            solver = optimizer.get('solver')
 
             if solver is None:
                 return f'No solver specified in `optimizer` parameters. Choose from: {valid_solvers}'
@@ -161,8 +163,8 @@ class PyscfCalculation(CalcJob):
             if solver.lower() not in valid_solvers:
                 return f'Invalid solver `{solver}` specified in `optimizer` parameters. Choose from: {valid_solvers}'
 
-        if 'cubegen' in parameters:
-            orbitals = parameters['cubegen'].get('orbitals')
+        if (cubegen := parameters.pop('cubegen', None)) is not None:
+            orbitals = cubegen.get('orbitals')
             indices = orbitals.get('indices') if orbitals is not None else None
 
             if orbitals is not None and indices is None:
@@ -174,9 +176,9 @@ class PyscfCalculation(CalcJob):
             if indices is not None and (not isinstance(indices, list) or any(not isinstance(e, int) for e in indices)):
                 return f'The `cubegen.orbitals.indices` parameter should be a list of integers, but got: {indices}'
 
-        if 'fcidump' in parameters:
-            active_spaces = parameters['fcidump'].get('active_spaces')
-            occupations = parameters['fcidump'].get('occupations')
+        if (fcidump := parameters.pop('fcidump', None)) is not None:
+            active_spaces = fcidump.get('active_spaces')
+            occupations = fcidump.get('occupations')
             arrays = []
 
             for key, data in (('active_spaces', active_spaces), ('occupations', occupations)):
@@ -192,6 +194,13 @@ class PyscfCalculation(CalcJob):
 
             if arrays[0].shape != arrays[1].shape:
                 return 'The `fcipdump.active_spaces` and `fcipdump.occupations` arrays have different shapes.'
+
+        # Remove other known arguments
+        for key in ('hessian', 'results', 'structure'):
+            parameters.pop(key, None)
+
+        if unknown_keys := list(parameters.keys()):
+            return f'The following arguments are not supported: {", ".join(unknown_keys)}'
 
     def get_template_environment(self) -> Environment:
         """Return the template environment that should be used for rendering.

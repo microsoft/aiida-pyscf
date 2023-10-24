@@ -186,6 +186,15 @@ def test_invalid_parameters_mean_field_chkfile(generate_calc_job, generate_input
         generate_calc_job(PyscfCalculation, inputs=inputs)
 
 
+def test_invalid_parameters_unknown_arguments(generate_calc_job, generate_inputs_pyscf):
+    """Test validation of ``parameters`` raises if unknown arguments are included."""
+    parameters = {'unknown_key': 'value'}
+    inputs = generate_inputs_pyscf(parameters=parameters)
+
+    with pytest.raises(ValueError, match=r'The following arguments are not supported: unknown_key'):
+        generate_calc_job(PyscfCalculation, inputs=inputs)
+
+
 @pytest.mark.parametrize(
     'parameters, expected', (
         ({}, r'No solver specified in `optimizer` parameters'),
