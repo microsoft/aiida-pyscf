@@ -16,6 +16,11 @@ density_matrix = None
 mean_field_start = time.perf_counter()
 mean_field_run = mean_field.run(density_matrix)
 
+{% if localize_orbitals %}
+from pyscf import lo
+mean_field_run.mo_coeff = lo.orth_ao(mean_field_run, {{ localize_orbitals.method|render_python }})
+{% endif -%}
+
 results['timings']['mean_field'] = time.perf_counter() - mean_field_start
 results['mean_field'] = {}
 results['mean_field']['is_converged'] = mean_field_run.converged

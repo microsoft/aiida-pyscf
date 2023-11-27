@@ -153,6 +153,15 @@ class PyscfCalculation(CalcJob):
                 'plugin if the `checkpoint` input is provided.'
             )
 
+        if (localize_orbitals := parameters.pop('localize_orbitals', None)) is not None:
+            valid_lo = ('boys', 'cholesky', 'edmiston', 'iao', 'ibo', 'lowdin', 'nao', 'orth', 'pipek', 'vvo')
+            method = localize_orbitals.get('method')
+            if method is None:
+                return f'No method specified in `localize_orbitals` parameters. Choose from: {valid_lo}'
+
+            if method.lower() not in valid_lo:
+                return f'Invalid method `{method}` specified in `localize_orbitals` parameters. Choose from: {valid_lo}'
+
         if (optimizer := parameters.pop('optimizer', None)) is not None:
             valid_solvers = ('geometric', 'berny')
             solver = optimizer.get('solver')

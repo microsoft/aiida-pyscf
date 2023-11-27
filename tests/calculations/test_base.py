@@ -87,6 +87,28 @@ def test_parameters_mean_field(generate_calc_job, generate_inputs_pyscf, file_re
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
 
 
+def test_parameters_mean_field_localize_orbitals(generate_calc_job, generate_inputs_pyscf, file_regression):
+    """Test the ``mean_field.localize_orbitals`` key of the ``parameters`` input."""
+    parameters = {'localize_orbitals': {}}
+    inputs = generate_inputs_pyscf(parameters=parameters)
+
+    with pytest.raises(ValueError, match=r'No method specified in `localize_orbitals` parameters.*'):
+        generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    parameters = {'localize_orbitals': {'method': 'invalid'}}
+    inputs = generate_inputs_pyscf(parameters=parameters)
+
+    with pytest.raises(ValueError, match=r'Invalid method `invalid` specified in `localize_orbitals` parameters.*'):
+        generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    parameters = {'localize_orbitals': {'method': 'ibo'}}
+    inputs = generate_inputs_pyscf(parameters=parameters)
+    tmp_path, _ = generate_calc_job(PyscfCalculation, inputs=inputs)
+
+    content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
+    file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
+
+
 def test_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, file_regression):
     """Test the ``optimizer`` key of the ``parameters`` input."""
     parameters = {
