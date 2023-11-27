@@ -32,7 +32,7 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
         spec.exit_code(
             310,
             'ERROR_NO_CHECKPOINT_TO_RESTART',
-            message='The calculation failed and did not retrieve a checkpoint file from which can be restarted.'
+            message='The calculation failed and did not retrieve a checkpoint file from which can be restarted.',
         )
 
     def setup(self):
@@ -68,7 +68,7 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
         priority=500,
         exit_codes=[
             PyscfCalculation.exit_codes.ERROR_IONIC_CONVERGENCE_NOT_REACHED,  # type: ignore[union-attr]
-        ]
+        ],
     )
     def handle_ionic_convergence_not_reached(self, node):
         """Handle ``ERROR_IONIC_CONVERGENCE_NOT_REACHED`` error.
@@ -95,7 +95,7 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
         priority=410,
         exit_codes=[
             PyscfCalculation.exit_codes.ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED,  # type: ignore[union-attr]
-        ]
+        ],
     )
     def handle_electronic_convergence_not_reached(self, node):
         """Handle ``ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED`` error.
@@ -110,7 +110,7 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
         priority=110,
         exit_codes=[
             PyscfCalculation.exit_codes.ERROR_SCHEDULER_NODE_FAILURE,  # type: ignore[union-attr]
-        ]
+        ],
     )
     def handle_scheduler_node_failure(self, node):
         """Handle ``ERROR_SCHEDULER_NODE_FAILURE`` error.
@@ -128,7 +128,7 @@ class PyscfBaseWorkChain(BaseRestartWorkChain):
         priority=100,
         exit_codes=[
             PyscfCalculation.exit_codes.ERROR_SCHEDULER_OUT_OF_WALLTIME,  # type: ignore[union-attr]
-        ]
+        ],
     )
     def handle_out_of_walltime(self, node):
         """Handle ``ERROR_SCHEDULER_OUT_OF_WALLTIME`` error.

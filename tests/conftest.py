@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=redefined-outer-name
 """Module with test fixtures."""
 from __future__ import annotations
 
 import collections
 import pathlib
 
+import pytest
 from aiida.common.folders import Folder
 from aiida.common.links import LinkType
 from aiida.engine.utils import instantiate_process
@@ -14,9 +14,8 @@ from aiida.orm import CalcJobNode, Dict, FolderData, StructureData, TrajectoryDa
 from aiida.plugins import ParserFactory, WorkflowFactory
 from ase.build import molecule
 from plumpy import ProcessState
-import pytest
 
-pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
+pytest_plugins = ['aiida.manage.tests.pytest_fixtures']
 
 
 @pytest.fixture
@@ -83,7 +82,7 @@ def generate_calc_job_node(filepath_tests, aiida_computer_local, tmp_path):
         return flat_inputs
 
     def factory(
-        entry_point: str, test_name: str, inputs: dict = None, retrieve_temporary_list: list[str] | None = None
+        entry_point: str, test_name: str, inputs: dict | None = None, retrieve_temporary_list: list[str] | None = None
     ):
         """Create and return a :class:`aiida.orm.CalcJobNode` instance."""
         node = CalcJobNode(computer=aiida_computer_local(), process_type=f'aiida.calculations:{entry_point}')

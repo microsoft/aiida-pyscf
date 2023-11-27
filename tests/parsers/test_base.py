@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_pyscf.parsers.base` module."""
-# pylint: disable=redefined-outer-name
 from aiida.orm import SinglefileData
+from aiida_pyscf.calculations.base import PyscfCalculation
 from aiida_shell.data import PickledData
 from pyscf.scf.hf import RHF
-
-from aiida_pyscf.calculations.base import PyscfCalculation
 
 
 def test_default(generate_calc_job_node, generate_parser, data_regression):
@@ -29,13 +27,15 @@ def test_relax(generate_calc_job_node, generate_parser, generate_structure, data
     assert calcfunction.is_finished, calcfunction.exception
     assert calcfunction.is_finished_ok, calcfunction.exit_message
     assert 'structure' in results
-    data_regression.check({
-        'parameters': results['parameters'].get_dict(),
-        'structure': results['structure'].base.attributes.all,
-        'trajectory': results['trajectory'].base.attributes.all,
-        'energies': results['trajectory'].get_array('energies').flatten().tolist(),
-        'positions': results['trajectory'].get_array('positions').flatten().tolist(),
-    })
+    data_regression.check(
+        {
+            'parameters': results['parameters'].get_dict(),
+            'structure': results['structure'].base.attributes.all,
+            'trajectory': results['trajectory'].base.attributes.all,
+            'energies': results['trajectory'].get_array('energies').flatten().tolist(),
+            'positions': results['trajectory'].get_array('positions').flatten().tolist(),
+        }
+    )
 
 
 def test_failed_out_of_walltime(generate_calc_job_node, generate_parser):

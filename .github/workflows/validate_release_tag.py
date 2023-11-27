@@ -17,8 +17,11 @@ def get_version_from_module(content: str) -> str:
 
     try:
         return next(
-            ast.literal_eval(statement.value) for statement in module.body if isinstance(statement, ast.Assign)
-            for target in statement.targets if isinstance(target, ast.Name) and target.id == '__version__'
+            ast.literal_eval(statement.value)
+            for statement in module.body
+            if isinstance(statement, ast.Assign)
+            for target in statement.targets
+            if isinstance(target, ast.Name) and target.id == '__version__'
         )
     except StopIteration as exception:
         raise IOError('Unable to find the `__version__` attribute in the module.') from exception

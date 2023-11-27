@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_pyscf.calculations.base` module."""
-# pylint: disable=redefined-outer-name
 import io
 import textwrap
 
+import pytest
 from aiida.manage.tests.pytest_fixtures import recursive_merge
 from aiida.orm import Dict, SinglefileData
-from jinja2 import BaseLoader, Environment
-import pytest
-
 from aiida_pyscf.calculations.base import PyscfCalculation
+from jinja2 import BaseLoader, Environment
 
 
 @pytest.fixture
@@ -24,13 +22,7 @@ def generate_inputs_pyscf(aiida_local_code_factory, generate_structure):
             'code': aiida_local_code_factory('pyscf.base', 'python'),
             'structure': generate_structure(),
             'parameters': Dict(parameters),
-            'metadata': {
-                'options': {
-                    'resources': {
-                        'num_machines': 1
-                    }
-                }
-            },
+            'metadata': {'options': {'resources': {'num_machines': 1}}},
         }
         inputs.update(**kwargs)
         return inputs
@@ -43,15 +35,19 @@ def test_default(generate_calc_job, generate_inputs_pyscf, file_regression):
     inputs = generate_inputs_pyscf()
     tmp_path, calc_info = generate_calc_job(PyscfCalculation, inputs=inputs)
 
-    assert sorted(calc_info.retrieve_list) == sorted([
-        PyscfCalculation.FILENAME_RESULTS,
-        PyscfCalculation.FILENAME_MODEL,
-        PyscfCalculation.FILENAME_STDOUT,
-    ])
+    assert sorted(calc_info.retrieve_list) == sorted(
+        [
+            PyscfCalculation.FILENAME_RESULTS,
+            PyscfCalculation.FILENAME_MODEL,
+            PyscfCalculation.FILENAME_STDOUT,
+        ]
+    )
 
-    assert sorted(calc_info.retrieve_temporary_list) == sorted([
-        PyscfCalculation.FILENAME_CHECKPOINT,
-    ])
+    assert sorted(calc_info.retrieve_temporary_list) == sorted(
+        [
+            PyscfCalculation.FILENAME_CHECKPOINT,
+        ]
+    )
 
     content_input_file = (tmp_path / PyscfCalculation.FILENAME_SCRIPT).read_text()
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
@@ -61,10 +57,7 @@ def test_parameters_structure(generate_calc_job, generate_inputs_pyscf, file_reg
     """Test the ``structure`` key of the ``parameters`` input."""
     parameters = {
         'structure': {
-            'basis': {
-                'O': 'sto-3g',
-                'H': 'cc-pvdz'
-            },
+            'basis': {'O': 'sto-3g', 'H': 'cc-pvdz'},
             'cart': True,
             'charge': 1,
             'spin': 2,
@@ -83,9 +76,7 @@ def test_parameters_mean_field(generate_calc_job, generate_inputs_pyscf, file_re
         'mean_field': {
             'diis_start_cycle': 2,
             'method': 'RHF',
-            'grids': {
-                'level': 3
-            },
+            'grids': {'level': 3},
             'xc': 'PBE',
         },
     }

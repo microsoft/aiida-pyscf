@@ -8,6 +8,7 @@ import numbers
 import pathlib
 import typing as t
 
+import numpy as np
 from aiida.common.datastructures import CalcInfo, CodeInfo
 from aiida.common.folders import Folder
 from aiida.engine import CalcJob, CalcJobProcessSpec
@@ -15,7 +16,6 @@ from aiida.orm import ArrayData, Dict, SinglefileData, StructureData, Trajectory
 from aiida_shell.data import PickledData
 from ase.io.xyz import write_xyz
 from jinja2 import Environment, PackageLoader, PrefixLoader
-import numpy as np
 from plumpy.utils import AttributesFrozendict
 
 __all__ = ('PyscfCalculation',)
@@ -69,7 +69,7 @@ class PyscfCalculation(CalcJob):
             'parameters',
             valid_type=Dict,
             required=False,
-            help='Various computed properties parsed from the `FILENAME_RESULTS` output file.'
+            help='Various computed properties parsed from the `FILENAME_RESULTS` output file.',
         )
         spec.output(
             'structure',
@@ -106,7 +106,7 @@ class PyscfCalculation(CalcJob):
             'cubegen.mep',
             valid_type=SinglefileData,
             required=False,
-            help='The molecular electrostatic potential (MEP) in `.cube` format.'
+            help='The molecular electrostatic potential (MEP) in `.cube` format.',
         )
         spec.output(
             'hessian',
@@ -120,16 +120,16 @@ class PyscfCalculation(CalcJob):
         spec.exit_code(
             410,
             'ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED',
-            message='The electronic minimization cycle did not reach self-consistency.'
+            message='The electronic minimization cycle did not reach self-consistency.',
         )
         spec.exit_code(
             500,
             'ERROR_IONIC_CONVERGENCE_NOT_REACHED',
-            message='The ionic minimization cycle did not converge for the given thresholds.'
+            message='The ionic minimization cycle did not converge for the given thresholds.',
         )
 
     @classmethod
-    def validate_parameters(cls, value: Dict | None, _) -> str | None:  # pylint: disable=too-many-return-statements,too-many-branches,too-many-locals
+    def validate_parameters(cls, value: Dict | None, _) -> str | None:  # noqa: PLR0911, PLR0912
         """Validate the parameters input."""
         if not value:
             return None
