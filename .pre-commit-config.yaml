@@ -1,36 +1,45 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: 'v4.2.0'
-    hooks:
-    -   id: double-quote-string-fixer
-    -   id: end-of-file-fixer
-    -   id: fix-encoding-pragma
-    -   id: mixed-line-ending
-    -   id: trailing-whitespace
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.2.0
+  hooks:
+  - id: double-quote-string-fixer
+  - id: end-of-file-fixer
+  - id: fix-encoding-pragma
+  - id: mixed-line-ending
+  - id: trailing-whitespace
 
--   repo: https://github.com/ikamensh/flynt/
-    rev: '0.76'
-    hooks:
-    -   id: flynt
+- repo: https://github.com/ikamensh/flynt/
+  rev: '0.76'
+  hooks:
+  - id: flynt
 
--   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.1.6'
-    hooks:
-    -   id: ruff-format
-    -   id: ruff
-        args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  rev: v2.11.0
+  hooks:
+  - id: pretty-format-toml
+    args: [--autofix]
+  - id: pretty-format-yaml
+    args: [--autofix]
+    exclude: tests/.*.yml
 
--   repo: local
-    hooks:
-    -   id: mypy
-        name: mypy
-        entry: mypy
-        args: [--config-file=pyproject.toml]
-        language: python
-        types: [python]
-        require_serial: true
-        pass_filenames: true
-        files: >-
-            (?x)^(
-                src/.*py|
-            )$
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.6
+  hooks:
+  - id: ruff-format
+  - id: ruff
+    args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+
+- repo: local
+  hooks:
+  - id: mypy
+    name: mypy
+    entry: mypy
+    args: [--config-file=pyproject.toml]
+    language: python
+    types: [python]
+    require_serial: true
+    pass_filenames: true
+    files: >-
+      (?x)^(
+        src/.*py|
+      )$
