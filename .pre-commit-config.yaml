@@ -22,6 +22,12 @@ repos:
     args: [--autofix]
     exclude: tests/.*.yml
 
+- repo: https://github.com/executablebooks/mdformat
+  rev: 0.7.17
+  hooks:
+  - id: mdformat
+    args: [--wrap=120]
+
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.1.6
   hooks:
