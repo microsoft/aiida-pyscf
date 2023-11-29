@@ -5,13 +5,13 @@ from __future__ import annotations
 import json
 import pathlib
 
+import dill
+import numpy
 from aiida.engine import ExitCode
 from aiida.orm import ArrayData, Dict, SinglefileData, TrajectoryData
 from aiida.parsers.parser import Parser
 from aiida_shell.data import PickledData
 from ase.io.extxyz import read_extxyz
-import dill
-import numpy
 from pint import UnitRegistry
 
 from aiida_pyscf.calculations.base import PyscfCalculation
@@ -27,7 +27,7 @@ class PyscfParser(Parser):
         self.dirpath_temporary: pathlib.Path | None = None
         super().__init__(*args, **kwargs)
 
-    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # pylint: disable=arguments-differ,too-many-locals,too-many-branches,too-many-statements
+    def parse(self, retrieved_temporary_folder: str | None = None, **kwargs):  # noqa: PLR0912, PLR0915
         """Parse the contents of the output files stored in the ``retrieved`` output node.
 
         :returns: An exit code if the job failed.
@@ -41,7 +41,7 @@ class PyscfParser(Parser):
 
         try:
             with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_STDOUT, 'r') as handle:
-                stdout = handle.read()  # pylint: disable=unused-variable
+                handle.read()
         except FileNotFoundError:
             return self.handle_failure('ERROR_OUTPUT_STDOUT_MISSING')
 
@@ -133,7 +133,7 @@ class PyscfParser(Parser):
 
         def batch(iterable, batch_size):
             """Split an iterable into a list of elements which size ``batch_size."""
-            return [iterable[i:i + batch_size] for i in range(0, len(iterable), batch_size)]
+            return [iterable[i : i + batch_size] for i in range(0, len(iterable), batch_size)]
 
         with filepath_trajectory.open() as handle:
             for atoms in read_extxyz(handle, index=slice(None, None)):

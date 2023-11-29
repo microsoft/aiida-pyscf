@@ -4,7 +4,6 @@ import io
 
 from aiida.engine import ProcessHandlerReport
 from aiida.orm import Log, SinglefileData
-
 from aiida_pyscf.calculations.base import PyscfCalculation
 from aiida_pyscf.workflows.base import PyscfBaseWorkChain
 
