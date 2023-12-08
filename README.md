@@ -193,6 +193,27 @@ and energy of each frame in the geometry optimization trajectory, are stored in 
 results['trajectory'].get_array('energies')
 ```
 
+### Localizing orbitals
+
+To compute localized orbitals, specify the desired method in the `parameters.localize_orbitals.method` input:
+
+```python
+from ase.build import molecule
+from aiida.engine import run
+from aiida.orm import Dict, StructureData, load_code
+
+builder = load_code('pyscf').get_builder()
+builder.structure = StructureData(ase=molecule('H2O'))
+builder.parameters = Dict({
+    'mean_field': {'method': 'RHF'},
+    'localize_orbitals': {'method': 'ibo'}
+})
+results, node = run.get_node(builder)
+```
+
+The following methods are supported: `boys`, `cholesky`, `edmiston`, `iao`, `ibo`, `lowdin`, `nao`, `orth`, `pipek`,
+`vvo`. For more information, please refer to the [PySCF documentation](https://pyscf.org/user/lo.html).
+
 ### Computing the Hessian
 
 In order to compute the Hessian, specify an empty dictionary for the `hessian` key in the `parameters` input:
