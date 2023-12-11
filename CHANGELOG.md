@@ -1,5 +1,39 @@
 # Change log
 
+## `v0.4.2` - 2023-12-11
+
+### Features
+
+- `PyscfCalculation`: Add support to localize orbitals
+  [\[d7923f2\]](https://github.com/microsoft/aiida-pyscf/commit/d7923f2158867b999dde4d90d41733cf6126d542)
+- `PyscfCalculation`: Make the pickling of the model optional
+  [\[671245e\]](https://github.com/microsoft/aiida-pyscf/commit/671245e7fec23e3a78f7b0b91fd1e47e4a8e77dc)
+
+### Fixes
+
+- `PyscfCalculation`: Fix bug in serializing model for `opt` attribute
+  [\[5411429\]](https://github.com/microsoft/aiida-pyscf/commit/5411429b429d1274a9757b83e5ef21fbaa1ced07)
+- `PyscfCalculation`: Make `cubegen` output namespace optional
+  [\[c367633\]](https://github.com/microsoft/aiida-pyscf/commit/c367633055912b39ecdc9cad3fb70f841792bbb6)
+- `PyscfCalculation`: Validate `parameters` for unknown arguments
+  [\[f3d3278\]](https://github.com/microsoft/aiida-pyscf/commit/f3d32789c6d3fa991fb08df47bd240954032b2f4)
+
+### Dependencies
+
+- Put upper limit `pyscf<2.4`
+  [\[aba7e1e\]](https://github.com/microsoft/aiida-pyscf/commit/aba7e1ed199057f6ba917772c92cf7c87c653ece)
+
+### Devops
+
+- Set `strategy.fail-fast` to `false` for CI
+  [\[bf610fd\]](https://github.com/microsoft/aiida-pyscf/commit/bf610fde03034fc1b086adbb8a204914e25530b7)
+- Pre-commit: Add automatic formatters for TOML and YAML files
+  [\[45ef89e\]](https://github.com/microsoft/aiida-pyscf/commit/45ef89eabb752614f5b17b560bc729d7b07b763c)
+- Pre-commit: Add markdown formatter
+  [\[edcb7ae\]](https://github.com/microsoft/aiida-pyscf/commit/edcb7aea0fb16fb1ec806658400312451687cca6)
+- Pre-commit: Migrate to `ruff`
+  [\[5a5d721\]](https://github.com/microsoft/aiida-pyscf/commit/5a5d721a494b4f00372e84afc0e9f5946c2d284b)
+
 ## `v0.4.1` - 2023-08-16
 
 ### Features
