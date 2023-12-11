@@ -108,6 +108,7 @@ class PyscfCalculation(CalcJob):
             required=False,
             help='The molecular electrostatic potential (MEP) in `.cube` format.',
         )
+        spec.outputs['cubegen'].required = False
         spec.output(
             'hessian',
             valid_type=ArrayData,
