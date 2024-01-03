@@ -97,7 +97,7 @@ def generate_calc_job_node(filepath_tests, aiida_computer_local, tmp_path):
         filepath_retrieved = filepath_tests / 'parsers' / 'fixtures' / entry_point.split('.')[-1] / test_name
 
         retrieved = FolderData()
-        retrieved.base.repository.put_object_from_tree(filepath_retrieved)
+        retrieved.put_object_from_tree(filepath_retrieved)
         retrieved.base.links.add_incoming(node, link_type=LinkType.CREATE, link_label='retrieved')
         retrieved.store()
 

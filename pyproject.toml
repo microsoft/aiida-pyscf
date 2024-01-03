@@ -20,7 +20,7 @@ classifiers = [
   'Topic :: Scientific/Engineering'
 ]
 dependencies = [
-  'aiida-core[atomic_tools]~=2.3',
+  'aiida-core[atomic_tools]~=2.5',
   'aiida-shell>=0.5.3',
   'dill',
   'numpy',
@@ -98,7 +98,8 @@ module = [
 
 [tool.pytest.ini_options]
 filterwarnings = [
-  'ignore:Creating AiiDA configuration folder.*:UserWarning'
+  'ignore:Creating AiiDA configuration folder.*:UserWarning',
+  'ignore:Object of type .* not in session.*:sqlalchemy.exc.SAWarning'
 ]
 
 [tool.ruff]

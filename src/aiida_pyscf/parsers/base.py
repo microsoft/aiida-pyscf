@@ -8,7 +8,7 @@ import pathlib
 import dill
 import numpy
 from aiida.engine import ExitCode
-from aiida.orm import ArrayData, Dict, SinglefileData, TrajectoryData
+from aiida.orm import ArrayData, Dict, FolderData, SinglefileData, TrajectoryData
 from aiida.parsers.parser import Parser
 from aiida_shell.data import PickledData
 from ase.io.extxyz import read_extxyz
@@ -33,6 +33,7 @@ class PyscfParser(Parser):
         :returns: An exit code if the job failed.
         """
         self.dirpath_temporary = pathlib.Path(retrieved_temporary_folder) if retrieved_temporary_folder else None
+        retrieved: FolderData = self.retrieved
 
         if 'parameters' in self.node.inputs:
             parameters = self.node.inputs.parameters.get_dict()
@@ -40,19 +41,19 @@ class PyscfParser(Parser):
             parameters = {}
 
         try:
-            with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_STDOUT, 'r') as handle:
+            with retrieved.open(PyscfCalculation.FILENAME_STDOUT, 'r') as handle:
                 handle.read()
         except FileNotFoundError:
             return self.handle_failure('ERROR_OUTPUT_STDOUT_MISSING')
 
         try:
-            with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_RESULTS, 'rb') as handle:
+            with retrieved.open(PyscfCalculation.FILENAME_RESULTS, 'rb') as handle:
                 parsed_json = json.load(handle)
         except FileNotFoundError:
             return self.handle_failure('ERROR_OUTPUT_RESULTS_MISSING')
 
         try:
-            with self.retrieved.base.repository.open(PyscfCalculation.FILENAME_MODEL, 'rb') as handle:
+            with retrieved.open(PyscfCalculation.FILENAME_MODEL, 'rb') as handle:
                 model = dill.load(handle)
         except FileNotFoundError:
             if parameters.get('results', {}).get('pickle_model', True):
