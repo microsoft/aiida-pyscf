@@ -156,7 +156,7 @@ class PyscfParser(Parser):
             positions=numpy.array(positions),
         )
         energies = (numpy.array(energies) * ureg.hartree).to(ureg.electron_volt).magnitude  # type: ignore[attr-defined]
-        trajectory.set_array('energies', energies)
+        trajectory.set_array('energies', numpy.array(energies))
 
         return trajectory
 
