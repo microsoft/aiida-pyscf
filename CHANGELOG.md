@@ -1,5 +1,14 @@
 # Change log
 
+## `v0.5.0` - 2024-01-03
+
+### Dependencies
+
+- Drop support for Python 3.8 [\[7bbf232\]](https://github.com//commit/7bbf232300f9abda08522ca103146b1141dbab9e)
+- Update requirement `aiida-core~=2.5`
+  [\[a93c416\]](https://github.com//commit/a93c416eab51bea8481b014fcf13e3eda6b2028a)
+- Update requirement `mypy==1.8.0` [\[0e17182\]](https://github.com//commit/0e1718240c71f6f19a6e9a1cf91a659a29d95f67)
+
 ## `v0.4.2` - 2023-12-11
 
 ### Features
