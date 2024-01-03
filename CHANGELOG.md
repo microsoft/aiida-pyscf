@@ -1,5 +1,12 @@
 # Change log
 
+## `v0.5.1` - 2024-01-03
+
+### Features
+
+- `PyscfCalculation`: Make valid keys in `parameters` easy to modify (#58)
+  [\[3597dd2\]](https://github.com//commit/3597dd2b944d1947029bac230b568c7f74ac487c)
+
 ## `v0.5.0` - 2024-01-03
 
 ### Dependencies
