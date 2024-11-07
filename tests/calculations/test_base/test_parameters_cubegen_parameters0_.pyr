@@ -14,8 +14,8 @@ def main():
 
     # Section: Results
     def write_results_and_exit(results):
-        import dill
         import json
+        import pickle
         import sys
 
         results['timings']['total'] = time.perf_counter() - time_start
@@ -24,11 +24,8 @@ def main():
             json.dump(results, handle)
 
         with open('model.pickle', 'wb') as handle:
-            # Need to unset the ``_chkfile`` attribute as it contains an open file handle which cannot be unpickled.
-            mean_field_run._chkfile = None
-            # Need to unset the ``opt`` attribute as it contains ctypes objects containing pointers which cannot be pickled.
-            mean_field_run.opt = None
-            dill.dump(mean_field_run, handle)
+            pickle.dump(mean_field_run, handle)
+
 
         sys.exit(0)
 

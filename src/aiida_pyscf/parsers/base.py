@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 import pathlib
+import pickle
 
-import dill
 import numpy
 from aiida.engine import ExitCode
 from aiida.orm import ArrayData, Dict, FolderData, SinglefileData, TrajectoryData
@@ -54,11 +54,11 @@ class PyscfParser(Parser):
 
         try:
             with retrieved.open(PyscfCalculation.FILENAME_MODEL, 'rb') as handle:
-                model = dill.load(handle)
+                model = pickle.load(handle)
         except FileNotFoundError:
             if parameters.get('results', {}).get('pickle_model', True):
                 self.logger.warning(f'The pickled model file `{PyscfCalculation.FILENAME_MODEL}` could not be read.')
-        except dill.UnpicklingError:
+        except pickle.UnpicklingError:
             self.logger.warning(f'The pickled model file `{PyscfCalculation.FILENAME_MODEL}` could not be unpickled.')
         else:
             self.out('model', PickledData(model))
@@ -156,7 +156,7 @@ class PyscfParser(Parser):
             symbols=[site.kind_name for site in self.node.inputs.structure.sites],
             positions=numpy.array(positions),
         )
-        energies = (numpy.array(energies) * ureg.hartree).to(ureg.electron_volt).magnitude  # type: ignore[attr-defined]
+        energies = (numpy.array(energies) * ureg.hartree).to(ureg.electron_volt).magnitude
         trajectory.set_array('energies', numpy.array(energies))
 
         return trajectory
