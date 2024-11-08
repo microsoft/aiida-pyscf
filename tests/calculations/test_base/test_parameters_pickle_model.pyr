@@ -14,8 +14,8 @@ def main():
 
     # Section: Results
     def write_results_and_exit(results):
-        import dill
         import json
+        import pickle
         import sys
 
         results['timings']['total'] = time.perf_counter() - time_start
