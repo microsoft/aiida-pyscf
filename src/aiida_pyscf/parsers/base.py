@@ -65,9 +65,9 @@ class PyscfParser(Parser):
 
         results_mean_field = parsed_json.setdefault('mean_field', {})
 
-        if 'optimized_coordinates' in parsed_json.get('optimizer', {}):
+        if 'optimized_coordinates' in parsed_json.get('geometry_optimizer', {}):
             structure = self.node.inputs.structure.clone()
-            optimized_coordinates = parsed_json['optimizer'].pop('optimized_coordinates') * ureg.bohr
+            optimized_coordinates = parsed_json['geometry_optimizer'].pop('optimized_coordinates') * ureg.bohr
             structure.reset_sites_positions(optimized_coordinates.to(ureg.angstrom).magnitude.tolist())
             self.out('structure', structure)
 
@@ -118,7 +118,7 @@ class PyscfParser(Parser):
         if results_mean_field['is_converged'] is False:
             return self.handle_failure('ERROR_ELECTRONIC_CONVERGENCE_NOT_REACHED', override_scheduler=True)
 
-        if 'optimizer' in parsed_json and parsed_json['optimizer']['is_converged'] is False:
+        if 'geometry_optimizer' in parsed_json and parsed_json['geometry_optimizer']['is_converged'] is False:
             return self.handle_failure('ERROR_IONIC_CONVERGENCE_NOT_REACHED', override_scheduler=True)
 
         return ExitCode(0)

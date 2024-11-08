@@ -157,9 +157,9 @@ automatically by the plugin based on the `StructureData` input.
 
 ### Optimizing geometry
 
-The geometry can be optimized by specifying the `optimizer` dictionary in the input `parameters`. The `solver` has to be
-specified, and currently the solvers `geometric` and `berny` are supported. The `convergence_parameters` accepts the
-parameters for the selected solver (see
+The geometry can be optimized by specifying the `geometry_optimizer` dictionary in the input `parameters`. The `solver`
+has to be specified, and currently the solvers `geometric` and `berny` are supported. The `convergence_parameters`
+accepts the parameters for the selected solver (see
 [PySCF documentation](https://pyscf.org/user/geomopt.html?highlight=geometry+optimization) for details):
 
 ```python
@@ -171,7 +171,7 @@ builder = load_code('pyscf').get_builder()
 builder.structure = StructureData(ase=molecule('H2O'))
 builder.parameters = Dict({
     'mean_field': {'method': 'RHF'},
-    'optimizer': {
+    'geometry_optimizer': {
         'solver': 'geometric',
         'convergence_parameters': {
             'convergence_energy': 1e-6,  # Eh
