@@ -131,7 +131,17 @@ class PyscfCalculation(CalcJob):
     @classmethod
     def get_valid_parameter_keys(cls) -> tuple[str, ...]:
         """Return list of valid keys for the ``parameters`` input."""
-        return ('mean_field', 'localize_orbitals', 'optimizer', 'cubegen', 'fcidump', 'hessian', 'results', 'structure')
+        valid_keys = (
+            'mean_field',
+            'localize_orbitals',
+            'geometry_optimizer',
+            'cubegen',
+            'fcidump',
+            'hessian',
+            'results',
+            'structure',
+        )
+        return valid_keys
 
     @classmethod
     def validate_parameters(cls, value: Dict | None, _) -> str | None:  # noqa: PLR0911, PLR0912
@@ -171,9 +181,9 @@ class PyscfCalculation(CalcJob):
             if method.lower() not in valid_lo:
                 return f'Invalid method `{method}` specified in `localize_orbitals` parameters. Choose from: {valid_lo}'
 
-        if (optimizer := parameters.get('optimizer')) is not None:
+        if (geometry_optimizer := parameters.get('geometry_optimizer')) is not None:
             valid_solvers = ('geometric', 'berny')
-            solver = optimizer.get('solver')
+            solver = geometry_optimizer.get('solver')
 
             if solver is None:
                 return f'No solver specified in `optimizer` parameters. Choose from: {valid_solvers}'

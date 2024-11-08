@@ -4,6 +4,8 @@ energies:
 - -30.408872159833294
 - -30.40888413284324
 parameters:
+  geometry_optimizer:
+    is_converged: true
   mean_field:
     forces:
     - - -0.0
@@ -26,11 +28,9 @@ parameters:
       - 0.0
     total_energy: -30.39241247445083
     total_energy_units: eV
-  optimizer:
-    is_converged: true
   timings:
+    geometry_optimizer: 0.37188204899575794
     mean_field: 0.07242159199813614
-    optimizer: 0.37188204899575794
     total: 0.9836381720015197
 positions:
 - 0.0

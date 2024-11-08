@@ -1,0 +1,24 @@
+# Section: Geometry Optimizer
+convergence_parameters = {}
+{% if geometry_optimizer.convergence_parameters %}
+    {% for key, value in geometry_optimizer.convergence_parameters.items() %}
+convergence_parameters['{{ key }}'] = {{ value|render_python }}
+    {% endfor %}
+{% endif %}
+
+geometry_optimizer_start = time.perf_counter()
+geometry_optimizer = mean_field.Gradients().optimizer(solver='{{ geometry_optimizer.solver }}')
+
+try:
+    geometry_optimizer_run = geometry_optimizer.kernel(convergence_parameters)
+except RuntimeError:
+    results['geometry_optimizer'] = {
+        'is_converged': False
+    }
+else:
+    results['geometry_optimizer'] = {
+        'is_converged': True,
+        'optimized_coordinates': geometry_optimizer_run.atom_coords().tolist(),
+    }
+
+results['timings']['geometry_optimizer'] = time.perf_counter() - geometry_optimizer_start

@@ -1,3 +1,5 @@
+geometry_optimizer:
+  is_converged: true
 mean_field:
   forces_units: eV/Å
   is_converged: true
@@ -19,5 +21,3 @@ mean_field:
     - 0.0
     - 0.0
   total_energy_units: eV
-optimizer:
-  is_converged: true

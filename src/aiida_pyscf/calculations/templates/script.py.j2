@@ -18,8 +18,8 @@ def main():
 
     {% include 'pyscf/mean_field.py.j2' %}
 
-    {% if optimizer %}
-    {% include 'pyscf/optimizer.py.j2' %}
+    {% if geometry_optimizer %}
+    {% include 'pyscf/geometry_optimizer.py.j2' %}
     {% endif %}
 
     {% if hessian is defined %}

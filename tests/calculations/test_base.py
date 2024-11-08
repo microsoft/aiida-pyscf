@@ -109,10 +109,10 @@ def test_parameters_mean_field_localize_orbitals(generate_calc_job, generate_inp
     file_regression.check(content_input_file, encoding='utf-8', extension='.pyr')
 
 
-def test_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, file_regression):
-    """Test the ``optimizer`` key of the ``parameters`` input."""
+def test_parameters_geometry_optimizer(generate_calc_job, generate_inputs_pyscf, file_regression):
+    """Test the ``geometry_optimizer`` key of the ``parameters`` input."""
     parameters = {
-        'optimizer': {
+        'geometry_optimizer': {
             'solver': 'geomeTRIC',
             'convergence_parameters': {
                 'convergence_energy': 2.0,
@@ -216,11 +216,11 @@ def test_invalid_parameters_unknown_arguments(generate_calc_job, generate_inputs
         }, r'Invalid solver `solve-this` specified in `optimizer` parameters'),
     )
 )
-def test_invalid_parameters_optimizer(generate_calc_job, generate_inputs_pyscf, parameters, expected):
-    """Test validation of ``parameters.optimizer``."""
+def test_invalid_parameters_geometry_optimizer(generate_calc_job, generate_inputs_pyscf, parameters, expected):
+    """Test validation of ``parameters.geometry_optimizer``."""
     with pytest.raises(ValueError, match=expected):
-        generate_calc_job(PyscfCalculation, inputs=generate_inputs_pyscf(parameters=Dict({'optimizer': parameters})))
-
+        generate_calc_job(
+            PyscfCalculation, inputs=generate_inputs_pyscf(parameters=Dict({'geometry_optimizer': parameters})))
 
 @pytest.mark.parametrize(
     'parameters, expected', (

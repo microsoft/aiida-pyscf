@@ -47,7 +47,7 @@ def test_pyscf_base_geometry_optimization(
     builder.parameters = orm.Dict(
         {
             'mean_field': {'method': 'RHF'},
-            'optimizer': {
+            'geometry_optimizer': {
                 'solver': 'geomeTRIC',
             },
         }
@@ -59,7 +59,7 @@ def test_pyscf_base_geometry_optimization(
 
     # Timings differ from run to run, so we just check the expected keys exist and are floats.
     timings = parameters.pop('timings')
-    for key in ('total', 'mean_field', 'optimizer'):
+    for key in ('total', 'mean_field', 'geometry_optimizer'):
         assert key in timings
         assert isinstance(timings[key], float)
 
