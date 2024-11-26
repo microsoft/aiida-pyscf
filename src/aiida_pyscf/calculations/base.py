@@ -172,6 +172,22 @@ class PyscfCalculation(CalcJob):
                 'plugin if the `checkpoint` input is provided.'
             )
 
+        if (scf_solver := mean_field.get('solver')) is not None:
+            valid_scf_solvers = ('DIIS', 'CDIIS', 'EDIIS', 'ADIIS')
+            options = ' '.join(valid_scf_solvers)
+
+            if scf_solver is None:
+                return f'No solver specified in `mean_field.solver` parameters. Choose from: {options}'
+
+            if scf_solver.upper() == 'DIIS':
+                scf_solver = 'CDIIS'
+                return '`DIIS` is an alias for CDIIS in PySCF. Using `CDIIS` explicitly instead.'
+
+            if scf_solver.upper() not in valid_scf_solvers:
+                return (
+                    f'Invalid solver `{scf_solver}` specified in `mean_field.solver` parameters. Choose from: {options}'
+                )
+
         if (localize_orbitals := parameters.get('localize_orbitals')) is not None:
             valid_lo = ('boys', 'cholesky', 'edmiston', 'iao', 'ibo', 'lowdin', 'nao', 'orth', 'pipek', 'vvo')
             method = localize_orbitals.get('method')

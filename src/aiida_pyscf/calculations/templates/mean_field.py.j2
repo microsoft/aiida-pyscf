@@ -2,8 +2,11 @@
 from pyscf import scf
 mean_field = scf.{{ mean_field.method }}(structure)
 {% if mean_field %}
+    {% if mean_field.solver %}
+mean_field.DIIS = scf.{{ mean_field.solver}}
+    {% endif %}
     {% for key, value in mean_field.items() %}
-        {% if key not in ['method', 'checkpoint'] %}
+        {% if key not in ['checkpoint', 'method', 'solver'] %}
 mean_field.{{ key }} = {{ value|render_python }}
         {% endif %}
     {% endfor %}
