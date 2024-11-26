@@ -43,6 +43,7 @@ def main():
     # Section: Mean field
     from pyscf import scf
     mean_field = scf.RHF(structure)
+    mean_field.DIIS = scf.ADIIS
     mean_field.xc = 'PBE'
     mean_field.grids = {'level': 3}
     mean_field.diis_start_cycle = 2

@@ -76,6 +76,7 @@ def test_parameters_mean_field(generate_calc_job, generate_inputs_pyscf, file_re
         'mean_field': {
             'diis_start_cycle': 2,
             'method': 'RHF',
+            'solver': 'ADIIS',
             'grids': {'level': 3},
             'xc': 'PBE',
         },
@@ -186,7 +187,27 @@ def test_invalid_parameters_mean_field_method(generate_calc_job, generate_inputs
     parameters = {'mean_field': {'method': 'invalid'}}
     inputs = generate_inputs_pyscf(parameters=parameters)
 
-    with pytest.raises(ValueError, match=r'Specified mean field method invalid is not supported'):
+    with pytest.raises(ValueError, match=r'Specified mean field method invalid is not supported, choose from: '
+                                         r'RKS RHF DKS DHF GKS GHF HF KS ROHF ROKS UKS UHF'):
+        generate_calc_job(PyscfCalculation, inputs=inputs)
+
+
+def test_invalid_parameters_mean_field_solver(generate_calc_job, generate_inputs_pyscf):
+    """Test validation of ``parameters.mean_field.solver``."""
+    parameters = {'mean_field': {'solver': 'invalid'}}
+    inputs = generate_inputs_pyscf(parameters=parameters)
+
+    with pytest.raises(ValueError, match=r'Invalid solver `invalid` specified in `mean_field.solver` parameters. '
+                                         r'Choose from: DIIS CDIIS EDIIS ADIIS'):
+        generate_calc_job(PyscfCalculation, inputs=inputs)
+
+
+def test_invalid_parameters_mean_field_solver_diis(generate_calc_job, generate_inputs_pyscf):
+    """Test logic to catch `DIIS` solver input for ``parameters.mean_field.solver``."""
+    parameters = {'mean_field': {'solver': 'DIIS'}}
+    inputs = generate_inputs_pyscf(parameters=parameters)
+
+    with pytest.raises(ValueError, match=r'`DIIS` is an alias for CDIIS in PySCF. Using `CDIIS` explicitly instead.'):
         generate_calc_job(PyscfCalculation, inputs=inputs)
 
 
