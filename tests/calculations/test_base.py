@@ -210,6 +210,19 @@ def test_invalid_parameters_mean_field_solver_diis(generate_calc_job, generate_i
     with pytest.raises(ValueError, match=r'`DIIS` is an alias for CDIIS in PySCF. Using `CDIIS` explicitly instead.'):
         generate_calc_job(PyscfCalculation, inputs=inputs)
 
+@pytest.mark.parametrize(
+    'solver, expected', (
+        ({'solver': 'newton'}, 'The solver `NEWTON` specified in `mean_field.solver` parameters is not yet supported.'),
+        ({'solver': 'sOsCf'}, 'The solver `SOSCF` specified in `mean_field.solver` parameters is not yet supported.'),
+    )
+)
+def test_invalid_parameters_mean_field_solver_second_order(generate_calc_job, generate_inputs_pyscf, solver, expected):
+    """Test logic to catch second order solver input for ``parameters.mean_field.solver``."""
+    parameters = {'mean_field': solver}
+    inputs = generate_inputs_pyscf(parameters=parameters)
+    with pytest.raises(ValueError, match=expected):
+        generate_calc_job(PyscfCalculation, inputs=inputs)
+
 
 def test_invalid_parameters_mean_field_chkfile(generate_calc_job, generate_inputs_pyscf):
     """Test validation of ``parameters.mean_field.chkfile``, is not allowed as set automatically by plugin."""

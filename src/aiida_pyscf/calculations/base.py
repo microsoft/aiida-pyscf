@@ -174,6 +174,7 @@ class PyscfCalculation(CalcJob):
 
         if (scf_solver := mean_field.get('solver')) is not None:
             valid_scf_solvers = ('DIIS', 'CDIIS', 'EDIIS', 'ADIIS')
+            forbidden_scf_solvers = ('SOSCF', 'NEWTON')
             options = ' '.join(valid_scf_solvers)
 
             if scf_solver is None:
@@ -182,6 +183,13 @@ class PyscfCalculation(CalcJob):
             if scf_solver.upper() == 'DIIS':
                 scf_solver = 'CDIIS'
                 return '`DIIS` is an alias for CDIIS in PySCF. Using `CDIIS` explicitly instead.'
+
+            # When PySCF adds support for pickling SOSCF objects, we can remove this stanza
+            if scf_solver.upper() in forbidden_scf_solvers:
+                return (
+                    f'The solver `{scf_solver.upper()}` specified in `mean_field.solver` parameters is not yet '
+                    f'supported. Choose from: {options}'
+                )
 
             if scf_solver.upper() not in valid_scf_solvers:
                 return (
