@@ -132,7 +132,8 @@ print(results['parameters'].get_dict())
 
 The geometry of the structure is fully defined through the `structure` input, which is provided by a `StructureData`
 node. Any other properties, e.g., the charge and what basis set to use, can be specified through the `structure`
-dictionary in the `parameters` input:
+dictionary in the `parameters` input. A specific SCF solver can also be specified using the `solver` keyword. For
+example:
 
 ```python
 from ase.build import molecule
@@ -142,7 +143,10 @@ from aiida.orm import Dict, StructureData, load_code
 builder = load_code('pyscf').get_builder()
 builder.structure = StructureData(ase=molecule('H2O'))
 builder.parameters = Dict({
-    'mean_field': {'method': 'RHF'},
+    'mean_field': {
+        'method': 'RHF',
+        'solver': 'CDIIS',
+    },
     'structure': {
         'basis ': 'sto-3g',
         'charge': 0,
